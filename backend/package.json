@@ -1,0 +1,15 @@
+{
+  "name": "quickcash-backend",
+  "version": "1.0.0",
+  "description": "QuickCash POS System Backend API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node database/seeds/seed-database.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["pos", "restaurant", "quickcash"],
+  "author": "Your Team",
+  "license": "MIT"
+}
