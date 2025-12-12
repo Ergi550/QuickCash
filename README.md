@@ -63,8 +63,8 @@ QuickCash-POS/
 
 1. **Clone repository:**
 ```bash
-git clone https://github.com/your-username/QuickCash-POS.git
-cd QuickCash-POS
+git clone https://github.com/Ergi550/QuickCash.git
+cd QuickCash
 ```
 
 2. **Setup Backend:**
@@ -83,24 +83,8 @@ cd frontend/staff-app
 npm install
 ng serve
 # Access at http://localhost:4200
-```
 
-## 📊 Database Setup
 
-1. Krijo PostgreSQL database:
-```sql
-CREATE DATABASE quickcash_db;
-```
-
-2. Run schema:
-```bash
-psql -U postgres -d quickcash_db -f database/schema.sql
-```
-
-3. Seed data:
-```bash
-npm run seed
-```
 
 ## 🔐 Default Login Credentials
 
@@ -123,13 +107,7 @@ npm run seed
 - Klaus Ferhati
 - Isli Korkuti
 
-## 📝 License
 
-MIT License - see LICENSE file
-
-## 🤝 Contributing
-
-Contributions are welcome! Ju lutem krijoni një Pull Request.
 
 ---
 
