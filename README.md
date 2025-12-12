@@ -107,6 +107,5 @@ ng serve
 - Klaus Ferhati
 - Isli Korkuti
 
----
 
 **QuickCash POS** - Moderne, Efikase, Inovative 🚀
