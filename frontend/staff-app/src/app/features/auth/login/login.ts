@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  standalone : false,
+  templateUrl: './login.html',
+  styleUrls: ['./login.scss']
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
