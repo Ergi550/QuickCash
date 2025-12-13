@@ -28,28 +28,47 @@ QuickCash është një sistem modern POS (Point of Sale) i projektuar për menax
 
 ### DevOps
 - Git & GitHub
-- Docker (optional)
+- Docker 
 
 ## 📂 Project Structure
 
 ```
-QuickCash-POS/
-├── backend/              # Node.js API
+quickcash/
+├── server/                          ✅ 100%
 │   ├── src/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   └── config/
-│   └── database/
-│       ├── migrations/
-│       └── seeds/
-├── frontend/
-│   ├── customer-app/     # Customer self-service app
-│   ├── staff-app/        # Staff POS interface
-│   └── manager-dashboard/ # Manager analytics
-├── docs/
-└── README.md
+│   │   ├── config/
+│   │   ├── controllers/ (4)
+│   │   ├── services/ (4)
+│   │   ├── models/ (4)
+│   │   ├── routes/ (4)
+│   │   ├── middleware/ (2)
+│   │   ├── utils/ (2)
+│   │   ├── data/ (3 JSON files)
+│   │   └── app.ts
+│   └── [docs]
+│
+├── client/                          ✅ 100%
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── core/
+│   │   │   │   ├── guards/ (2)      ✅
+│   │   │   │   ├── interceptors/ (1) ✅
+│   │   │   │   ├── models/ (4)      ✅
+│   │   │   │   └── services/ (5)    ✅
+│   │   │   │
+│   │   │   ├── features/
+│   │   │   │   ├── auth/ (2)        ✅
+│   │   │   │   ├── customer/ (5)    ✅
+│   │   │   │   ├── staff/ (4)       ✅
+│   │   │   │   └── manager/ (6)     ✅ NEW!
+│   │   │   │
+│   │   │   └── shared/
+│   │   │       └── components/ (2)  ✅ NEW!
+│   │   │
+│   │   └── [config files]
+│   └── [docs]
+│
+└── [documentation] (9 files)        ✅
 ```
 
 ## 🚀 Getting Started
@@ -73,7 +92,7 @@ cd backend
 npm install
 cp .env.example .env
 # Edit .env me konfigurimet e tua
-npm run seed  # Populate database
+npm run seed  # Populate database Pasi te vendoset ne projekt
 npm run dev   # Start server
 ```
 
@@ -92,7 +111,7 @@ ng serve
 - **Manager:** manager@quickcash.al / password123
 - **Staff:** staff1@quickcash.al / password123
 
-⚠️ **NDRYSHONI këto passwords në production!**
+
 
 ## 📖 Documentation
 
