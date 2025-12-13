@@ -1,0 +1,41 @@
+[
+  {
+    "id": "user-001",
+    "username": "admin",
+    "email": "admin@quickcash.com",
+    "password": "$2a$10$X4V.7mF.m0yHZ0K0Uz5t8.NxCXPYR4YN1J.7z8Kn4F8z5Y6A7B8C9",
+    "role": "manager",
+    "firstName": "Admin",
+    "lastName": "Manager",
+    "phone": "+355691234567",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "user-002",
+    "username": "staff1",
+    "email": "staff@quickcash.com",
+    "password": "$2a$10$X4V.7mF.m0yHZ0K0Uz5t8.NxCXPYR4YN1J.7z8Kn4F8z5Y6A7B8C9",
+    "role": "staff",
+    "firstName": "John",
+    "lastName": "Doe",
+    "phone": "+355697654321",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "user-003",
+    "username": "customer1",
+    "email": "customer@example.com",
+    "password": "$2a$10$X4V.7mF.m0yHZ0K0Uz5t8.NxCXPYR4YN1J.7z8Kn4F8z5Y6A7B8C9",
+    "role": "customer",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "phone": "+355693456789",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+]

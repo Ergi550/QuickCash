@@ -1,0 +1,66 @@
+[
+  {
+    "id": "order-001",
+    "orderNumber": "ORD-2024-0001",
+    "customerId": "user-003",
+    "customerName": "Jane Smith",
+    "items": [
+      {
+        "productId": "prod-001",
+        "productName": "Espresso",
+        "quantity": 2,
+        "price": 150,
+        "subtotal": 300
+      },
+      {
+        "productId": "prod-003",
+        "productName": "Margherita Pizza",
+        "quantity": 1,
+        "price": 600,
+        "subtotal": 600
+      }
+    ],
+    "subtotal": 900,
+    "tax": 180,
+    "discount": 0,
+    "total": 1080,
+    "status": "completed",
+    "paymentStatus": "paid",
+    "paymentMethod": "card",
+    "tableNumber": 5,
+    "staffId": "user-002",
+    "createdAt": "2024-12-13T10:30:00.000Z",
+    "updatedAt": "2024-12-13T11:00:00.000Z"
+  },
+  {
+    "id": "order-002",
+    "orderNumber": "ORD-2024-0002",
+    "customerName": "Walk-in Customer",
+    "items": [
+      {
+        "productId": "prod-002",
+        "productName": "Cappuccino",
+        "quantity": 1,
+        "price": 200,
+        "subtotal": 200
+      },
+      {
+        "productId": "prod-005",
+        "productName": "Tiramisu",
+        "quantity": 1,
+        "price": 350,
+        "subtotal": 350
+      }
+    ],
+    "subtotal": 550,
+    "tax": 110,
+    "discount": 0,
+    "total": 660,
+    "status": "ready",
+    "paymentStatus": "pending",
+    "tableNumber": 3,
+    "staffId": "user-002",
+    "createdAt": "2024-12-13T12:15:00.000Z",
+    "updatedAt": "2024-12-13T12:30:00.000Z"
+  }
+]

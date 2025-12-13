@@ -1,0 +1,80 @@
+[
+  {
+    "id": "prod-001",
+    "name": "Espresso",
+    "description": "Kafe e fortë italiane",
+    "category": "beverage",
+    "price": 150,
+    "cost": 50,
+    "stock": 100,
+    "imageUrl": "/assets/products/espresso.jpg",
+    "isAvailable": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod-002",
+    "name": "Cappuccino",
+    "description": "Kafe me qumësht të shkumuar",
+    "category": "beverage",
+    "price": 200,
+    "cost": 70,
+    "stock": 100,
+    "imageUrl": "/assets/products/cappuccino.jpg",
+    "isAvailable": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod-003",
+    "name": "Margherita Pizza",
+    "description": "Picë klasike me domate dhe mocarella",
+    "category": "food",
+    "price": 600,
+    "cost": 250,
+    "stock": 50,
+    "imageUrl": "/assets/products/margherita.jpg",
+    "isAvailable": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod-004",
+    "name": "Caesar Salad",
+    "description": "Sallatë freskuese me pule",
+    "category": "food",
+    "price": 450,
+    "cost": 200,
+    "stock": 30,
+    "imageUrl": "/assets/products/caesar.jpg",
+    "isAvailable": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod-005",
+    "name": "Tiramisu",
+    "description": "Ëmbëlsirë italiane klasike",
+    "category": "dessert",
+    "price": 350,
+    "cost": 150,
+    "stock": 20,
+    "imageUrl": "/assets/products/tiramisu.jpg",
+    "isAvailable": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod-006",
+    "name": "Fresh Orange Juice",
+    "description": "Lëng portokalli i freskët",
+    "category": "beverage",
+    "price": 250,
+    "cost": 100,
+    "stock": 40,
+    "imageUrl": "/assets/products/orange-juice.jpg",
+    "isAvailable": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+]
