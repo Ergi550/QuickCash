@@ -4,7 +4,6 @@ import { AuthRequest } from '../middleware/auth.middleware';
 
 /**
  * Payment Controller
- * Handles HTTP requests for payment endpoints
  */
 class PaymentController {
   /**
@@ -23,7 +22,7 @@ class PaymentController {
       res.status(statusCode).json({
         success: result.success,
         message: result.message,
-        data: result
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -37,11 +36,11 @@ class PaymentController {
   async getPaymentById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const payment = await paymentService.getPaymentById(id);
+      const payment = await paymentService.getPaymentById(parseInt(id));
 
       res.status(200).json({
         success: true,
-        data: payment
+        data: payment,
       });
     } catch (error) {
       next(error);
@@ -55,12 +54,12 @@ class PaymentController {
   async getPaymentsByOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { orderId } = req.params;
-      const payments = await paymentService.getPaymentsByOrder(orderId);
+      const payments = await paymentService.getPaymentsByOrder(parseInt(orderId));
 
       res.status(200).json({
         success: true,
         count: payments.length,
-        data: payments
+        data: payments,
       });
     } catch (error) {
       next(error);
@@ -73,12 +72,13 @@ class PaymentController {
    */
   async getAllPayments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const payments = await paymentService.getAllPayments();
+      const { status } = req.query;
+      const payments = await paymentService.getAllPayments(status as string);
 
       res.status(200).json({
         success: true,
         count: payments.length,
-        data: payments
+        data: payments,
       });
     } catch (error) {
       next(error);
@@ -94,12 +94,12 @@ class PaymentController {
       const { id } = req.params;
       const { reason } = req.body;
 
-      const payment = await paymentService.refundPayment(id, reason);
+      const payment = await paymentService.refundPayment(parseInt(id), reason);
 
       res.status(200).json({
         success: true,
-        message: 'Payment refunded successfully',
-        data: payment
+        message: 'Pagesa u rimbursua me sukses',
+        data: payment,
       });
     } catch (error) {
       next(error);
@@ -125,10 +125,50 @@ class PaymentController {
           revenue,
           currency: 'ALL',
           period: {
-            startDate: startDate || 'Beginning',
-            endDate: endDate || 'Now'
-          }
-        }
+            startDate: startDate || 'Fillimi',
+            endDate: endDate || 'Tani',
+          },
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get payment statistics
+   * GET /api/v1/payments/stats
+   */
+  async getPaymentStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { startDate, endDate } = req.query;
+
+      const stats = await paymentService.getPaymentStats(
+        startDate ? new Date(startDate as string) : undefined,
+        endDate ? new Date(endDate as string) : undefined
+      );
+
+      res.status(200).json({
+        success: true,
+        data: stats,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get daily revenue report
+   * GET /api/v1/payments/reports/daily
+   */
+  async getDailyRevenue(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const days = parseInt(req.query.days as string) || 30;
+      const data = await paymentService.getDailyRevenue(days);
+
+      res.status(200).json({
+        success: true,
+        data,
       });
     } catch (error) {
       next(error);

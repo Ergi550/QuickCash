@@ -1,120 +1,150 @@
+import { query, transaction } from '../database/Connection';
 import { Payment, ProcessPaymentDTO, PaymentResponse } from '../models/payment.model';
-import { PaymentMethod, PaymentStatus } from '../models/order.model';
+import { OrderStatus, PaymentStatus } from '../models/order.model';
 import { AppError } from '../middleware/error.middleware';
-import orderService from './order.service';
 
 /**
  * Payment Service
- * Handles payment processing
+ * Handles payment processing with PostgreSQL
  */
 class PaymentService {
-  private payments: Payment[] = [];
-  private receiptCounter: number = 1;
-
   /**
    * Process payment
-   * @param paymentData - Payment data
-   * @param staffId - Staff processing payment
-   * @returns Payment response
    */
   async processPayment(
     paymentData: ProcessPaymentDTO,
-    staffId?: string
+    staffId?: number
   ): Promise<PaymentResponse> {
-    // Get order
-    const order = await orderService.getOrderById(paymentData.orderId);
+    return transaction(async (client) => {
+      // Get order
+      const orderResult = await client.query(
+        'SELECT * FROM orders WHERE order_id = $1',
+        [paymentData.order_id]
+      );
 
-    // Validate payment amount
-    if (paymentData.amount < order.total) {
-      throw new AppError('Payment amount is less than order total', 400);
-    }
+      if (orderResult.rows.length === 0) {
+        throw new AppError('Porosia nuk u gjet', 404);
+      }
 
-    // Check if order already paid
-    if (order.paymentStatus === PaymentStatus.PAID) {
-      throw new AppError('Order has already been paid', 400);
-    }
+      const order = orderResult.rows[0];
 
-    // Generate receipt number
-    const receiptNumber = `RCP-${new Date().getFullYear()}-${String(this.receiptCounter).padStart(6, '0')}`;
-    this.receiptCounter++;
+      // Check if order already fully paid
+      const existingPayments = await client.query(
+        `SELECT COALESCE(SUM(amount_paid), 0) as total_paid 
+         FROM payments 
+         WHERE order_id = $1 AND payment_status = 'paid'`,
+        [paymentData.order_id]
+      );
+      
+      const totalPaid = parseFloat(existingPayments.rows[0].total_paid);
+      const amountDue = Number(order.total_amount) - totalPaid;
 
-    // Simulate payment processing based on method
-    const paymentResult = await this.simulatePaymentGateway(
-      paymentData.method,
-      paymentData.amount
-    );
+      if (amountDue <= 0) {
+        throw new AppError('Porosia është paguar tashmë', 400);
+      }
 
-    if (!paymentResult.success) {
-      // Payment failed
-      const failedPayment: Payment = {
-        id: `payment-${Date.now()}`,
-        orderId: paymentData.orderId,
-        amount: paymentData.amount,
-        method: paymentData.method,
-        status: PaymentStatus.FAILED,
-        receiptNumber,
-        processedBy: staffId,
-        processedAt: new Date(),
-        notes: paymentData.notes || 'Payment failed',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // Validate payment amount
+      if (paymentData.amount_paid < amountDue && paymentData.payment_method !== 'cash') {
+        throw new AppError('Shuma e pagesës është më e vogël se totali i porosisë', 400);
+      }
 
-      this.payments.push(failedPayment);
+      // Calculate change
+      const changeAmount = paymentData.amount_paid > amountDue 
+        ? paymentData.amount_paid - amountDue 
+        : 0;
+
+      // Generate receipt number
+      const receiptResult = await client.query(
+        `SELECT 'RCP-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-' || 
+                LPAD((COALESCE(MAX(CAST(SUBSTRING(receipt_number FROM '[0-9]+$') AS INT)), 0) + 1)::text, 6, '0') as receipt_number
+         FROM payments 
+         WHERE receipt_number LIKE 'RCP-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-%'`
+      );
+      const receiptNumber = receiptResult.rows[0].receipt_number;
+
+      // Simulate payment gateway for card payments
+      let transactionId = null;
+      if (paymentData.payment_method === 'card') {
+        const gatewayResult = await this.simulatePaymentGateway(paymentData.amount_paid);
+        if (!gatewayResult.success) {
+          // Record failed payment
+          await client.query(
+            `INSERT INTO payments (
+              order_id, payment_method, payment_status, amount_paid, amount_due,
+              receipt_number, processed_by, processed_at
+            )
+            VALUES ($1, $2, 'failed', $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
+            [
+              paymentData.order_id,
+              paymentData.payment_method,
+              paymentData.amount_paid,
+              amountDue,
+              receiptNumber,
+              staffId || null,
+            ]
+          );
+
+          return {
+            success: false,
+            payment: {} as Payment,
+            message: gatewayResult.message,
+          };
+        }
+        transactionId = gatewayResult.transactionId;
+      }
+
+      // Create payment record
+      const paymentResult = await client.query(
+        `INSERT INTO payments (
+          order_id, payment_method, payment_status, amount_paid, amount_due,
+          change_amount, card_last_four, card_brand, transaction_id,
+          receipt_number, processed_by, processed_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP)
+        RETURNING *`,
+        [
+          paymentData.order_id,
+          paymentData.payment_method,
+          PaymentStatus.PAID,
+          paymentData.amount_paid,
+          amountDue,
+          changeAmount,
+          paymentData.card_last_four || null,
+          paymentData.card_brand || null,
+          transactionId,
+          receiptNumber,
+          staffId || null,
+        ]
+      );
+
+      const payment = paymentResult.rows[0];
+
+      // Update order status to completed
+      await client.query(
+        `UPDATE orders 
+         SET status = $1, completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE order_id = $2`,
+        [OrderStatus.COMPLETED, paymentData.order_id]
+      );
 
       return {
-        success: false,
-        payment: failedPayment,
-        message: paymentResult.message
+        success: true,
+        payment,
+        receipt_url: `/receipts/${receiptNumber}.pdf`,
+        message: 'Pagesa u krye me sukses',
+        change_amount: changeAmount,
       };
-    }
-
-    // Payment successful
-    const payment: Payment = {
-      id: `payment-${Date.now()}`,
-      orderId: paymentData.orderId,
-      amount: paymentData.amount,
-      method: paymentData.method,
-      status: PaymentStatus.PAID,
-      transactionId: paymentResult.transactionId,
-      receiptNumber,
-      processedBy: staffId,
-      processedAt: new Date(),
-      notes: paymentData.notes,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    this.payments.push(payment);
-
-    // Update order payment status
-    await orderService.updatePaymentStatus(
-      paymentData.orderId,
-      PaymentStatus.PAID,
-      paymentData.method
-    );
-
-    // Update order status to completed
-    await orderService.updateOrderStatus(paymentData.orderId, 'completed' as any);
-
-    return {
-      success: true,
-      payment,
-      receiptUrl: `/receipts/${receiptNumber}.pdf`,
-      message: 'Payment processed successfully'
-    };
+    });
   }
 
   /**
    * Simulate payment gateway
-   * (In production, this would call Stripe/PayPal API)
    */
   private async simulatePaymentGateway(
-    method: PaymentMethod,
     amount: number
   ): Promise<{ success: boolean; transactionId?: string; message?: string }> {
     // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Mock success rate: 95%
     const isSuccessful = Math.random() > 0.05;
@@ -122,96 +152,213 @@ class PaymentService {
     if (!isSuccessful) {
       return {
         success: false,
-        message: 'Payment declined. Please try again.'
+        message: 'Pagesa u refuzua. Ju lutem provoni përsëri.',
       };
     }
 
-    // Generate mock transaction ID
-    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
     return {
       success: true,
-      transactionId
+      transactionId,
     };
   }
 
   /**
    * Get payment by ID
-   * @param paymentId - Payment ID
-   * @returns Payment
    */
-  async getPaymentById(paymentId: string): Promise<Payment> {
-    const payment = this.payments.find(p => p.id === paymentId);
-    
-    if (!payment) {
-      throw new AppError('Payment not found', 404);
+  async getPaymentById(paymentId: number): Promise<Payment> {
+    const result = await query(
+      `SELECT p.*, o.order_number, u.full_name as staff_name
+       FROM payments p
+       JOIN orders o ON p.order_id = o.order_id
+       LEFT JOIN users u ON p.processed_by = u.user_id
+       WHERE p.payment_id = $1`,
+      [paymentId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError('Pagesa nuk u gjet', 404);
     }
 
-    return payment;
+    return result.rows[0];
   }
 
   /**
    * Get payments by order ID
-   * @param orderId - Order ID
-   * @returns List of payments
    */
-  async getPaymentsByOrder(orderId: string): Promise<Payment[]> {
-    return this.payments.filter(p => p.orderId === orderId);
+  async getPaymentsByOrder(orderId: number): Promise<Payment[]> {
+    const result = await query(
+      `SELECT p.*, u.full_name as staff_name
+       FROM payments p
+       LEFT JOIN users u ON p.processed_by = u.user_id
+       WHERE p.order_id = $1 
+       ORDER BY p.created_at DESC`,
+      [orderId]
+    );
+    return result.rows;
   }
 
   /**
    * Get all payments
-   * @returns List of all payments
    */
-  async getAllPayments(): Promise<Payment[]> {
-    return this.payments;
+  async getAllPayments(status?: string): Promise<Payment[]> {
+    let queryText = `
+      SELECT p.*, o.order_number, u.full_name as staff_name
+      FROM payments p
+      JOIN orders o ON p.order_id = o.order_id
+      LEFT JOIN users u ON p.processed_by = u.user_id
+    `;
+    const params: any[] = [];
+
+    if (status) {
+      queryText += ' WHERE p.payment_status = $1';
+      params.push(status);
+    }
+
+    queryText += ' ORDER BY p.created_at DESC';
+
+    const result = await query(queryText, params);
+    return result.rows;
   }
 
   /**
    * Refund payment
-   * @param paymentId - Payment ID
-   * @param reason - Refund reason
-   * @returns Updated payment
    */
-  async refundPayment(paymentId: string, reason?: string): Promise<Payment> {
-    const payment = await this.getPaymentById(paymentId);
+  async refundPayment(paymentId: number, reason?: string): Promise<Payment> {
+    return transaction(async (client) => {
+      // Get payment
+      const paymentResult = await client.query(
+        'SELECT * FROM payments WHERE payment_id = $1',
+        [paymentId]
+      );
 
-    if (payment.status !== PaymentStatus.PAID) {
-      throw new AppError('Cannot refund unpaid payment', 400);
-    }
+      if (paymentResult.rows.length === 0) {
+        throw new AppError('Pagesa nuk u gjet', 404);
+      }
 
-    payment.status = PaymentStatus.REFUNDED;
-    payment.notes = reason || 'Refunded';
-    payment.updatedAt = new Date();
+      const payment = paymentResult.rows[0];
 
-    // Update order payment status
-    await orderService.updatePaymentStatus(
-      payment.orderId,
-      PaymentStatus.REFUNDED
-    );
+      if (payment.payment_status !== PaymentStatus.PAID) {
+        throw new AppError('Nuk mund të rimbursohet pagesa e papaguar', 400);
+      }
 
-    return payment;
+      // Update payment status
+      const updateResult = await client.query(
+        `UPDATE payments 
+         SET payment_status = $1 
+         WHERE payment_id = $2 
+         RETURNING *`,
+        [PaymentStatus.REFUNDED, paymentId]
+      );
+
+      // Create refund record
+      await client.query(
+        `INSERT INTO refunds (payment_id, order_id, amount, reason, status, processed_at)
+         VALUES ($1, $2, $3, $4, 'completed', CURRENT_TIMESTAMP)`,
+        [paymentId, payment.order_id, payment.amount_paid, reason || 'Rimbursim']
+      );
+
+      return updateResult.rows[0];
+    });
   }
 
   /**
    * Get total revenue
-   * @param startDate - Optional start date
-   * @param endDate - Optional end date
-   * @returns Total revenue
    */
   async getTotalRevenue(startDate?: Date, endDate?: Date): Promise<number> {
-    let payments = this.payments.filter(p => p.status === PaymentStatus.PAID);
+    let queryText = `
+      SELECT COALESCE(SUM(amount_paid), 0) as revenue 
+      FROM payments 
+      WHERE payment_status = 'paid'
+    `;
+    const params: any[] = [];
 
-    if (startDate || endDate) {
-      payments = payments.filter(p => {
-        const paymentDate = new Date(p.createdAt);
-        if (startDate && paymentDate < startDate) return false;
-        if (endDate && paymentDate > endDate) return false;
-        return true;
-      });
+    if (startDate) {
+      params.push(startDate);
+      queryText += ` AND created_at >= $${params.length}`;
     }
 
-    return payments.reduce((sum, p) => sum + p.amount, 0);
+    if (endDate) {
+      params.push(endDate);
+      queryText += ` AND created_at <= $${params.length}`;
+    }
+
+    const result = await query(queryText, params);
+    return parseFloat(result.rows[0].revenue);
+  }
+
+  /**
+   * Get payment statistics
+   */
+  async getPaymentStats(startDate?: Date, endDate?: Date): Promise<{
+    totalPayments: number;
+    successfulPayments: number;
+    failedPayments: number;
+    refundedPayments: number;
+    totalRevenue: number;
+    byMethod: { payment_method: string; count: number; total: number }[];
+  }> {
+    let dateFilter = '';
+    const params: any[] = [];
+
+    if (startDate) {
+      params.push(startDate);
+      dateFilter += ` AND created_at >= $${params.length}`;
+    }
+    if (endDate) {
+      params.push(endDate);
+      dateFilter += ` AND created_at <= $${params.length}`;
+    }
+
+    const totalResult = await query(`SELECT COUNT(*) as count FROM payments WHERE 1=1${dateFilter}`, params);
+    const successResult = await query(`SELECT COUNT(*) as count FROM payments WHERE payment_status = 'paid'${dateFilter}`, params);
+    const failedResult = await query(`SELECT COUNT(*) as count FROM payments WHERE payment_status = 'failed'${dateFilter}`, params);
+    const refundedResult = await query(`SELECT COUNT(*) as count FROM payments WHERE payment_status = 'refunded'${dateFilter}`, params);
+    const revenueResult = await query(`SELECT COALESCE(SUM(amount_paid), 0) as revenue FROM payments WHERE payment_status = 'paid'${dateFilter}`, params);
+    const byMethodResult = await query(
+      `SELECT payment_method, COUNT(*) as count, COALESCE(SUM(amount_paid), 0) as total 
+       FROM payments 
+       WHERE payment_status = 'paid'${dateFilter} 
+       GROUP BY payment_method`,
+      params
+    );
+
+    return {
+      totalPayments: parseInt(totalResult.rows[0].count),
+      successfulPayments: parseInt(successResult.rows[0].count),
+      failedPayments: parseInt(failedResult.rows[0].count),
+      refundedPayments: parseInt(refundedResult.rows[0].count),
+      totalRevenue: parseFloat(revenueResult.rows[0].revenue),
+      byMethod: byMethodResult.rows.map((row) => ({
+        payment_method: row.payment_method,
+        count: parseInt(row.count),
+        total: parseFloat(row.total),
+      })),
+    };
+  }
+
+  /**
+   * Get daily revenue report
+   */
+  async getDailyRevenue(days: number = 30): Promise<{ date: string; revenue: number; orders: number }[]> {
+    const result = await query(
+      `SELECT 
+         DATE(created_at) as date,
+         COALESCE(SUM(amount_paid), 0) as revenue,
+         COUNT(*) as orders
+       FROM payments 
+       WHERE payment_status = 'paid' 
+         AND created_at >= CURRENT_DATE - INTERVAL '${days} days'
+       GROUP BY DATE(created_at)
+       ORDER BY date DESC`
+    );
+
+    return result.rows.map((row) => ({
+      date: row.date,
+      revenue: parseFloat(row.revenue),
+      orders: parseInt(row.orders),
+    }));
   }
 }
 

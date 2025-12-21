@@ -1,150 +1,224 @@
-import { User, UserResponse, LoginCredentials, AuthResponse, JWTPayload, UserRole } from '../models/user.model';
+import { query } from '../database/Connection';
+import {
+  User,
+  UserResponse,
+  LoginCredentials,
+  RegisterDTO,
+  AuthResponse,
+  JWTPayload,
+} from '../models/user.model';
 import { hashPassword, comparePassword } from '../utils/password.utils';
 import { generateToken } from '../utils/jwt.utils';
 import { AppError } from '../middleware/error.middleware';
-import usersData from '../data/users.json';
 
 /**
  * Authentication Service
- * Handles login, register, and user management
+ * Handles login, register, and user management with PostgreSQL
  */
 class AuthService {
-  private users: User[];
-
-  constructor() {
-    // Load mock users (in real app, this would be DB)
-    this.users = usersData as User[];
-  }
-
   /**
    * Login user
-   * @param credentials - Email and password
-   * @returns Auth response with token and user data
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const { email, password } = credentials;
 
     // Find user by email
-    const user = this.users.find(u => u.email === email);
-    
+    const result = await query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+
+    const user = result.rows[0] as User | undefined;
+
     if (!user) {
-      throw new AppError('Invalid email or password', 401);
+      throw new AppError('Email ose fjalëkalimi i gabuar', 401);
     }
 
     // Check if user is active
-    if (!user.isActive) {
-      throw new AppError('Account is deactivated', 403);
+    if (!user.is_active) {
+      throw new AppError('Llogaria është çaktivizuar', 403);
     }
 
     // Verify password
-    const isPasswordValid = await comparePassword(password, user.password);
-    
+    const isPasswordValid = await comparePassword(password, user.password_hash);
+
     if (!isPasswordValid) {
-      throw new AppError('Invalid email or password', 401);
+      throw new AppError('Email ose fjalëkalimi i gabuar', 401);
     }
+
+    // Update last_login
+    await query(
+      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE user_id = $1',
+      [user.user_id]
+    );
 
     // Generate JWT
     const payload: JWTPayload = {
-      userId: user.id,
+      userId: user.user_id,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
 
     const token = generateToken(payload);
 
-    // Return response without password
     return {
       token,
-      user: this.sanitizeUser(user)
+      user: this.sanitizeUser(user),
     };
   }
 
   /**
-   * Register new user (customer)
-   * @param userData - User registration data
-   * @returns Auth response with token and user data
+   * Register new user
    */
-  async register(userData: Partial<User>): Promise<AuthResponse> {
-    const { email, password, firstName, lastName, phone } = userData;
+  async register(userData: RegisterDTO): Promise<AuthResponse> {
+    const { email, password, full_name, phone, role } = userData;
 
     // Validate required fields
-    if (!email || !password || !firstName || !lastName) {
-      throw new AppError('Missing required fields', 400);
+    if (!email || !password || !full_name) {
+      throw new AppError('Fushat e detyrueshme mungojnë', 400);
     }
 
     // Check if email already exists
-    const existingUser = this.users.find(u => u.email === email);
-    if (existingUser) {
-      throw new AppError('Email already registered', 409);
+    const existingResult = await query(
+      'SELECT user_id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (existingResult.rows.length > 0) {
+      throw new AppError('Email-i është i regjistruar tashmë', 409);
     }
 
     // Hash password
-    const hashedPassword = await hashPassword(password);
+    const password_hash = await hashPassword(password);
 
     // Create new user
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      username: email.split('@')[0],
-      email,
-      password: hashedPassword,
-      role: UserRole.CUSTOMER, // Default role
-      firstName,
-      lastName,
-      phone,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const result = await query(
+      `INSERT INTO users (email, password_hash, role, full_name, phone, is_active, is_verified, two_factor_enabled)
+       VALUES ($1, $2, $3, $4, $5, true, false, false)
+       RETURNING *`,
+      [email, password_hash, role || 'cashier', full_name, phone || null]
+    );
 
-    // Add to users array (in real app, save to DB)
-    this.users.push(newUser);
+    const newUser = result.rows[0] as User;
 
     // Generate JWT
     const payload: JWTPayload = {
-      userId: newUser.id,
+      userId: newUser.user_id,
       email: newUser.email,
-      role: newUser.role
+      role: newUser.role,
     };
 
     const token = generateToken(payload);
 
     return {
       token,
-      user: this.sanitizeUser(newUser)
+      user: this.sanitizeUser(newUser),
     };
   }
 
   /**
    * Get user by ID
-   * @param userId - User ID
-   * @returns User data without password
    */
-  async getUserById(userId: string): Promise<UserResponse> {
-    const user = this.users.find(u => u.id === userId);
-    
+  async getUserById(userId: number): Promise<UserResponse> {
+    const result = await query(
+      'SELECT * FROM users WHERE user_id = $1',
+      [userId]
+    );
+
+    const user = result.rows[0] as User | undefined;
+
     if (!user) {
-      throw new AppError('User not found', 404);
+      throw new AppError('Përdoruesi nuk u gjet', 404);
     }
 
     return this.sanitizeUser(user);
   }
 
   /**
-   * Remove password from user object
-   * @param user - User object
-   * @returns User without password
+   * Get all users
    */
-  private sanitizeUser(user: User): UserResponse {
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+  async getAllUsers(): Promise<UserResponse[]> {
+    const result = await query(
+      'SELECT * FROM users ORDER BY created_at DESC'
+    );
+
+    return result.rows.map((user: User) => this.sanitizeUser(user));
   }
 
   /**
-   * Get all users (for admin/manager)
-   * @returns List of users without passwords
+   * Update user
    */
-  async getAllUsers(): Promise<UserResponse[]> {
-    return this.users.map(user => this.sanitizeUser(user));
+  async updateUser(userId: number, updateData: Partial<User>): Promise<UserResponse> {
+    const { full_name, phone, is_active, role } = updateData;
+
+    const result = await query(
+      `UPDATE users 
+       SET full_name = COALESCE($1, full_name),
+           phone = COALESCE($2, phone),
+           is_active = COALESCE($3, is_active),
+           role = COALESCE($4, role),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE user_id = $5
+       RETURNING *`,
+      [full_name, phone, is_active, role, userId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError('Përdoruesi nuk u gjet', 404);
+    }
+
+    return this.sanitizeUser(result.rows[0]);
+  }
+
+  /**
+   * Change password
+   */
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    const result = await query(
+      'SELECT password_hash FROM users WHERE user_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError('Përdoruesi nuk u gjet', 404);
+    }
+
+    const isValid = await comparePassword(currentPassword, result.rows[0].password_hash);
+    if (!isValid) {
+      throw new AppError('Fjalëkalimi aktual është i gabuar', 400);
+    }
+
+    const newHash = await hashPassword(newPassword);
+    await query(
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+      [newHash, userId]
+    );
+  }
+
+  /**
+   * Delete user
+   */
+  async deleteUser(userId: number): Promise<void> {
+    const result = await query(
+      'DELETE FROM users WHERE user_id = $1 RETURNING user_id',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError('Përdoruesi nuk u gjet', 404);
+    }
+  }
+
+  /**
+   * Remove password from user object
+   */
+  private sanitizeUser(user: User): UserResponse {
+    const { password_hash, two_factor_secret, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 }
 

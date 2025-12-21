@@ -4,10 +4,12 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import config from './config/config';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import { testConnection } from './database/Connection';
 
-// Import routes (will be created next)
+// Import routes
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
+import categoryRoutes from './routes/category.routes';
 import orderRoutes from './routes/order.routes';
 import paymentRoutes from './routes/payment.routes';
 
@@ -30,26 +32,31 @@ class App {
   private initializeMiddlewares(): void {
     // Security
     this.app.use(helmet());
-    
+
     // CORS
     this.app.use(cors(config.cors));
-    
+
     // Body parsing
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
-    
+
     // Logging
     if (config.nodeEnv === 'development') {
       this.app.use(morgan('dev'));
+    } else {
+      this.app.use(morgan('combined'));
     }
 
     // Health check endpoint
-    this.app.get('/health', (req, res) => {
-      res.json({
-        success: true,
-        message: 'QuickCash API is running',
+    this.app.get('/health', async (req, res) => {
+      const dbConnected = await testConnection().catch(() => false);
+      
+      res.status(dbConnected ? 200 : 503).json({
+        success: dbConnected,
+        message: dbConnected ? 'QuickCash API is running' : 'Database connection failed',
         timestamp: new Date().toISOString(),
-        environment: config.nodeEnv
+        environment: config.nodeEnv,
+        database: dbConnected ? 'connected' : 'disconnected',
       });
     });
   }
@@ -63,6 +70,7 @@ class App {
     // Mount routes
     this.app.use(`${apiPrefix}/auth`, authRoutes);
     this.app.use(`${apiPrefix}/products`, productRoutes);
+    this.app.use(`${apiPrefix}/categories`, categoryRoutes);
     this.app.use(`${apiPrefix}/orders`, orderRoutes);
     this.app.use(`${apiPrefix}/payments`, paymentRoutes);
 
@@ -70,13 +78,25 @@ class App {
     this.app.get(apiPrefix, (req, res) => {
       res.json({
         success: true,
-        message: 'QuickCash API v1',
+        message: 'QuickCash POS API v1',
+        version: '1.0.0',
         endpoints: {
           auth: `${apiPrefix}/auth`,
           products: `${apiPrefix}/products`,
+          categories: `${apiPrefix}/categories`,
           orders: `${apiPrefix}/orders`,
-          payments: `${apiPrefix}/payments`
-        }
+          payments: `${apiPrefix}/payments`,
+        },
+      });
+    });
+
+    // Root endpoint
+    this.app.get('/', (req, res) => {
+      res.json({
+        success: true,
+        message: 'Mirë se vini në QuickCash POS System',
+        api: '/api/v1',
+        health: '/health',
       });
     });
   }
@@ -85,29 +105,41 @@ class App {
    * Initialize error handling
    */
   private initializeErrorHandling(): void {
-    // 404 handler
     this.app.use(notFoundHandler);
-    
-    // Global error handler
     this.app.use(errorHandler);
   }
 
   /**
    * Start the server
    */
-  public listen(): void {
+  public async listen(): Promise<void> {
+    console.log('\n🔌 Duke testuar lidhjen me databazën...');
+    const dbConnected = await testConnection();
+
+    if (!dbConnected) {
+      console.error('❌ Dështoi lidhja me databazën. Kontrollo konfigurimin.');
+      console.log('\n📝 Sigurohu që:');
+      console.log('   1. PostgreSQL është duke punuar');
+      console.log('   2. Kredencialet në .env janë të sakta');
+      console.log('   3. Databaza ekziston\n');
+      process.exit(1);
+    }
+
     this.app.listen(config.port, () => {
+      console.log('\n=================================');
+      console.log('🚀 QuickCash POS API Server');
       console.log('=================================');
-      console.log(`🚀 QuickCash API Server Started`);
       console.log(`📡 Port: ${config.port}`);
       console.log(`🌍 Environment: ${config.nodeEnv}`);
-      console.log(`⏰ Time: ${new Date().toISOString()}`);
+      console.log(`🗄️  Database: E lidhur`);
+      console.log(`⏰ Koha: ${new Date().toISOString()}`);
       console.log('=================================');
+      console.log(`\n📌 API URL: http://localhost:${config.port}/api/v1`);
+      console.log(`📌 Health: http://localhost:${config.port}/health\n`);
     });
   }
 }
 
-// Create and start server
 const app = new App();
 app.listen();
 

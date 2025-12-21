@@ -1,31 +1,44 @@
 import { Router } from 'express';
 import orderController from '../controllers/order.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
-import { UserRole } from '../models/user.model';
 
 const router = Router();
 
+// ==================== REPORT ROUTES (must be before :id) ====================
+
+/**
+ * @route   GET /api/v1/orders/stats
+ * @desc    Get order statistics
+ * @access  Private (Manager+)
+ */
+router.get(
+  '/stats',
+  authenticate,
+  authorize('admin', 'manager'),
+  orderController.getOrderStats
+);
+
 /**
  * @route   GET /api/v1/orders/reports/today
- * @desc    Get today's orders and revenue
- * @access  Private (Staff, Manager)
+ * @desc    Get today's orders
+ * @access  Private (Staff+)
  */
 router.get(
   '/reports/today',
   authenticate,
-  authorize(UserRole.STAFF, UserRole.MANAGER),
+  authorize('admin', 'manager', 'staff'),
   orderController.getTodayOrders
 );
 
 /**
  * @route   GET /api/v1/orders/reports/range
  * @desc    Get orders by date range
- * @access  Private (Manager)
+ * @access  Private (Manager+)
  */
 router.get(
   '/reports/range',
   authenticate,
-  authorize(UserRole.MANAGER),
+  authorize('admin', 'manager'),
   orderController.getOrdersByRange
 );
 
@@ -40,15 +53,17 @@ router.get(
   orderController.getCustomerOrders
 );
 
+// ==================== ORDER ROUTES ====================
+
 /**
  * @route   GET /api/v1/orders
  * @desc    Get all orders
- * @access  Private (Staff, Manager)
+ * @access  Private (Staff+)
  */
 router.get(
   '/',
   authenticate,
-  authorize(UserRole.STAFF, UserRole.MANAGER),
+  authorize('admin', 'manager', 'staff'),
   orderController.getAllOrders
 );
 
@@ -62,19 +77,19 @@ router.get('/:id', authenticate, orderController.getOrderById);
 /**
  * @route   POST /api/v1/orders
  * @desc    Create new order
- * @access  Private (Staff, Manager, Customer)
+ * @access  Private
  */
 router.post('/', authenticate, orderController.createOrder);
 
 /**
  * @route   PATCH /api/v1/orders/:id/status
  * @desc    Update order status
- * @access  Private (Staff, Manager)
+ * @access  Private (Staff+)
  */
 router.patch(
   '/:id/status',
   authenticate,
-  authorize(UserRole.STAFF, UserRole.MANAGER),
+  authorize('admin', 'manager', 'staff'),
   orderController.updateOrderStatus
 );
 

@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.quickcash.com/api/v1', // Change to your production API
+  apiUrl: 'http://localhost:3000/api/v1', 
   tokenKey: 'quickcash_token',
   userKey: 'quickcash_user'
 };

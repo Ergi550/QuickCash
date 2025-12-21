@@ -1,11 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import orderService from '../services/order.service';
-import { OrderStatus } from '../models/order.model';
 import { AuthRequest } from '../middleware/auth.middleware';
 
 /**
  * Order Controller
- * Handles HTTP requests for order endpoints
  */
 class OrderController {
   /**
@@ -15,13 +13,12 @@ class OrderController {
   async getAllOrders(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { status } = req.query;
-      
-      const orders = await orderService.getAllOrders(status as OrderStatus);
+      const orders = await orderService.getAllOrders(status as string);
 
       res.status(200).json({
         success: true,
         count: orders.length,
-        data: orders
+        data: orders,
       });
     } catch (error) {
       next(error);
@@ -35,11 +32,11 @@ class OrderController {
   async getOrderById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const order = await orderService.getOrderById(id);
+      const order = await orderService.getOrderById(parseInt(id));
 
       res.status(200).json({
         success: true,
-        data: order
+        data: order,
       });
     } catch (error) {
       next(error);
@@ -53,12 +50,12 @@ class OrderController {
   async getCustomerOrders(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { customerId } = req.params;
-      const orders = await orderService.getOrdersByCustomer(customerId);
+      const orders = await orderService.getOrdersByCustomer(parseInt(customerId));
 
       res.status(200).json({
         success: true,
         count: orders.length,
-        data: orders
+        data: orders,
       });
     } catch (error) {
       next(error);
@@ -78,8 +75,8 @@ class OrderController {
 
       res.status(201).json({
         success: true,
-        message: 'Order created successfully',
-        data: order
+        message: 'Porosia u krijua me sukses',
+        data: order,
       });
     } catch (error) {
       next(error);
@@ -95,12 +92,12 @@ class OrderController {
       const { id } = req.params;
       const { status } = req.body;
 
-      const order = await orderService.updateOrderStatus(id, status);
+      const order = await orderService.updateOrderStatus(parseInt(id), status);
 
       res.status(200).json({
         success: true,
-        message: 'Order status updated',
-        data: order
+        message: 'Statusi i porosisë u përditësua',
+        data: order,
       });
     } catch (error) {
       next(error);
@@ -114,12 +111,14 @@ class OrderController {
   async cancelOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const order = await orderService.cancelOrder(id);
+      const { reason } = req.body;
+
+      const order = await orderService.cancelOrder(parseInt(id), reason);
 
       res.status(200).json({
         success: true,
-        message: 'Order cancelled successfully',
-        data: order
+        message: 'Porosia u anulua',
+        data: order,
       });
     } catch (error) {
       next(error);
@@ -133,13 +132,15 @@ class OrderController {
   async getTodayOrders(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const orders = await orderService.getTodayOrders();
-      const revenue = orderService.calculateRevenue(orders);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const revenue = await orderService.calculateRevenue(today, new Date());
 
       res.status(200).json({
         success: true,
         count: orders.length,
         revenue,
-        data: orders
+        data: orders,
       });
     } catch (error) {
       next(error);
@@ -157,23 +158,44 @@ class OrderController {
       if (!startDate || !endDate) {
         res.status(400).json({
           success: false,
-          message: 'Start date and end date are required'
+          message: 'Data e fillimit dhe mbarimit janë të detyrueshme',
         });
         return;
       }
 
-      const orders = await orderService.getOrdersByDateRange(
-        new Date(startDate as string),
-        new Date(endDate as string)
-      );
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
 
-      const revenue = orderService.calculateRevenue(orders);
+      const orders = await orderService.getOrdersByDateRange(start, end);
+      const revenue = await orderService.calculateRevenue(start, end);
 
       res.status(200).json({
         success: true,
         count: orders.length,
         revenue,
-        data: orders
+        data: orders,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get order statistics
+   * GET /api/v1/orders/stats
+   */
+  async getOrderStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { startDate, endDate } = req.query;
+
+      const stats = await orderService.getOrderStats(
+        startDate ? new Date(startDate as string) : undefined,
+        endDate ? new Date(endDate as string) : undefined
+      );
+
+      res.status(200).json({
+        success: true,
+        data: stats,
       });
     } catch (error) {
       next(error);

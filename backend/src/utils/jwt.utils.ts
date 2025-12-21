@@ -7,13 +7,11 @@ import config from '../config/config';
  * @param payload - User data to encode
  * @returns JWT token string
  */
-
- export const generateToken = (payload: JWTPayload): string => {
+export const generateToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn
+    expiresIn: config.jwt.expiresIn,
   });
 };
-
 
 /**
  * Verify JWT token

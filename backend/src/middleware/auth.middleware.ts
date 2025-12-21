@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt.utils';
-import { JWTPayload, UserRole } from '../models/user.model';
+import { JWTPayload } from '../models/user.model';
 
 /**
  * Extended Request interface with user data
@@ -21,24 +21,24 @@ export const authenticate = (
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       res.status(401).json({
         success: false,
-        message: 'No token provided'
+        message: 'Token nuk u gjet',
       });
       return;
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    
+
     // Verify token
     const payload = verifyToken(token);
-    
+
     if (!payload) {
       res.status(401).json({
         success: false,
-        message: 'Invalid or expired token'
+        message: 'Token i pavlefshëm ose i skaduar',
       });
       return;
     }
@@ -49,7 +49,7 @@ export const authenticate = (
   } catch (error) {
     res.status(401).json({
       success: false,
-      message: 'Authentication failed'
+      message: 'Autentifikimi dështoi',
     });
   }
 };
@@ -59,12 +59,12 @@ export const authenticate = (
  * Checks if user has required role(s)
  * @param roles - Allowed roles
  */
-export const authorize = (...roles: UserRole[]) => {
+export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not authenticated'
+        message: 'Nuk jeni autentifikuar',
       });
       return;
     }
@@ -72,7 +72,7 @@ export const authorize = (...roles: UserRole[]) => {
     if (!roles.includes(req.user.role)) {
       res.status(403).json({
         success: false,
-        message: 'Access denied. Insufficient permissions'
+        message: 'Akses i refuzuar. Nuk keni të drejta të mjaftueshme',
       });
       return;
     }

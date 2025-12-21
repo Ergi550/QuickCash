@@ -1,54 +1,81 @@
 /**
  * User roles in the system
  */
-export enum UserRole{
-    CUSTOMER = 'customer',
-    STAFF = 'staff',
-    MANAGER = 'manager'
+export enum UserRole {
+  ADMIN = 'admin',
+  MANAGER = 'manager',
+  CASHIER = 'cashier',
+  WAITER = 'waiter',
+  KITCHEN = 'kitchen',
 }
 
-//USER INTERFACE
-
+/**
+ * User interface (matches your database schema)
+ */
 export interface User {
-    id : string;
-    username: string;
-    email:string;
-    password:string;//hashed
-    role:UserRole;
-    firstName:string;
-    lastName:string;
-    phone?:string;
-    createdAt:Date |string;
-    updatedAt:Date |string;
-    isActive:boolean;
-}
-//User response
-
-export interface UserResponse{
-    id:string;
-    username:string;
-    email:string;
-    role:UserRole;
-    firstName:string;
-    lastName:string;
-    phone?:string;
+  user_id: number;
+  email: string;
+  password_hash: string;
+  role: string;
+  full_name: string;
+  phone?: string;
+  is_active: boolean;
+  is_verified: boolean;
+  two_factor_enabled: boolean;
+  two_factor_secret?: string;
+  last_login?: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
-//Login credentials
-export interface LoginCredentials{
-    email : string;
-    password:string;
+/**
+ * User response (without password)
+ */
+export interface UserResponse {
+  user_id: number;
+  email: string;
+  role: string;
+  full_name: string;
+  phone?: string;
+  is_active: boolean;
+  is_verified: boolean;
+  last_login?: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
-//*JWT Payload 
+/**
+ * Login credentials
+ */
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+/**
+ * Register DTO
+ */
+export interface RegisterDTO {
+  email: string;
+  password: string;
+  full_name: string;
+  phone?: string;
+  role?: string;
+}
+
+/**
+ * JWT Payload
+ */
 export interface JWTPayload {
-    userId : string;
-    email:string;
-    role:UserRole;
+  userId: number;
+  email: string;
+  role: string;
 }
 
-//Auth response 
+/**
+ * Auth response
+ */
 export interface AuthResponse {
-    token : string;
-    user :UserResponse;
+  token: string;
+  user: UserResponse;
 }

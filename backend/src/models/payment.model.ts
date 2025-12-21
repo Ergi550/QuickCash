@@ -1,30 +1,38 @@
 import { PaymentMethod, PaymentStatus } from './order.model';
 
 /**
- * Payment interface
+ * Payment interface (matches your database schema)
  */
 export interface Payment {
-  id: string;
-  orderId: string;
-  amount: number;
-  method: PaymentMethod;
-  status: PaymentStatus;
-  transactionId?: string;
-  receiptNumber: string;
-  processedBy?: string; // staffId
-  processedAt?: Date;
-  notes?: string;
-  createdAt: Date |string;
-  updatedAt: Date |string;
+  payment_id: number;
+  order_id: number;
+  payment_method: string;
+  payment_status: string;
+  amount_paid: number;
+  amount_due: number;
+  change_amount?: number;
+  card_last_four?: string;
+  card_brand?: string;
+  transaction_id?: string;
+  gateway_response?: any;
+  receipt_number?: string;
+  processed_by?: number;
+  processed_at?: Date;
+  created_at: Date;
+  // Joined data
+  order_number?: string;
+  staff_name?: string;
 }
 
 /**
  * Process payment DTO
  */
 export interface ProcessPaymentDTO {
-  orderId: string;
-  amount: number;
-  method: PaymentMethod;
+  order_id: number;
+  payment_method: string;
+  amount_paid: number;
+  card_last_four?: string;
+  card_brand?: string;
   notes?: string;
 }
 
@@ -34,6 +42,7 @@ export interface ProcessPaymentDTO {
 export interface PaymentResponse {
   success: boolean;
   payment: Payment;
-  receiptUrl?: string;
+  receipt_url?: string;
   message?: string;
+  change_amount?: number;
 }
