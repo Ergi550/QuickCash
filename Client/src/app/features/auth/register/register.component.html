@@ -1,0 +1,108 @@
+<div class="register-container">
+      <div class="register-card">
+        <h1>QuickCash POS</h1>
+        <h2>Create Account</h2>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+          <!-- First Name -->
+          <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input 
+              type="text" 
+              id="firstName"
+              formControlName="firstName"
+              placeholder="Enter your first name"
+            />
+            <span class="error-message" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+              First name is required
+            </span>
+          </div>
+
+          <!-- Last Name -->
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input 
+              type="text" 
+              id="lastName"
+              formControlName="lastName"
+              placeholder="Enter your last name"
+            />
+            <span class="error-message" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+              Last name is required
+            </span>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input 
+              type="email" 
+              id="email"
+              formControlName="email"
+              placeholder="Enter your email"
+            />
+            <span class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+              Valid email is required
+            </span>
+          </div>
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label for="phone">Phone (optional)</label>
+            <input 
+              type="tel" 
+              id="phone"
+              formControlName="phone"
+              placeholder="+355 69 123 4567"
+            />
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password">Password *</label>
+            <input 
+              type="password" 
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+            />
+            <span class="error-message" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+              Password must be at least 6 characters
+            </span>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password *</label>
+            <input 
+              type="password" 
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              placeholder="Confirm your password"
+            />
+            <span class="error-message" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+              Passwords must match
+            </span>
+          </div>
+
+          <!-- Error message -->
+          <div class="alert alert-error" *ngIf="errorMessage">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Submit button -->
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="registerForm.invalid || isLoading"
+          >
+            {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+          </button>
+        </form>
+
+        <p class="login-link">
+          Already have an account? 
+          <a routerLink="/login">Login here</a>
+        </p>
+      </div>
+    </div>

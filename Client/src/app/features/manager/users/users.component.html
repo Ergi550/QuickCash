@@ -1,0 +1,34 @@
+<div class="users-page">
+      <h1>👥 User Management</h1>
+      
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td><strong>{{ user.firstName }} {{ user.lastName }}</strong></td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span class="role-badge" [class]="'role-' + user.role">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td>{{ user.phone || '-' }}</td>
+              <td>
+                <span class="status-badge" [class.active]="user.isActive">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>

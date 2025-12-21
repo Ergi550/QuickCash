@@ -1,0 +1,65 @@
+<div class="login-container">
+      <div class="login-card">
+        <h1>QuickCash POS</h1>
+        <h2>Login</h2>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email"
+              formControlName="email"
+              placeholder="Enter your email"
+              [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            />
+            <span class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+              Valid email is required
+            </span>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input 
+              type="password" 
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            />
+            <span class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+              Password is required
+            </span>
+          </div>
+
+          <!-- Error message -->
+          <div class="alert alert-error" *ngIf="errorMessage">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Submit button -->
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="loginForm.invalid || isLoading"
+          >
+            {{ isLoading ? 'Logging in...' : 'Login' }}
+          </button>
+        </form>
+
+        <p class="register-link">
+          Don't have an account? 
+          <a routerLink="/register">Register here</a>
+        </p>
+
+        <!-- Test accounts info -->
+        <div class="test-accounts">
+          <h3>Test Accounts:</h3>
+          <p><strong>Manager:</strong> admin@quickcash.com / password123</p>
+          <p><strong>Staff:</strong> staff@quickcash.com / password123</p>
+          <p><strong>Customer:</strong> customer@example.com / password123</p>
+        </div>
+      </div>
+    </div>

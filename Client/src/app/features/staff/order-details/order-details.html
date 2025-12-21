@@ -1,0 +1,160 @@
+<div class="order-details-page">
+      <div class="page-header">
+        <button class="btn-back" (click)="goBack()">
+          ← Back to Orders
+        </button>
+        <h1 *ngIf="order">Order #{{ order.orderNumber }}</h1>
+      </div>
+
+      <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+      </div>
+
+      <div *ngIf="order && !isLoading" class="order-content">
+        <!-- Order Info Card -->
+        <div class="info-card">
+          <h2>Order Information</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Status</label>
+              <span class="badge" [class]="'badge-' + order.status">
+                {{ order.status }}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Created</label>
+              <span>{{ formatDate(order.createdAt) }}</span>
+            </div>
+            <div class="info-item">
+              <label>Customer</label>
+              <span>{{ order.customerName || 'Walk-in' }}</span>
+            </div>
+            <div class="info-item" *ngIf="order.tableNumber">
+              <label>Table</label>
+              <span>#{{ order.tableNumber }}</span>
+            </div>
+            <div class="info-item" *ngIf="order.notes">
+              <label>Notes</label>
+              <span>{{ order.notes }}</span>
+            </div>
+            <div class="info-item">
+              <label>Payment</label>
+              <span [class]="'payment-' + order.paymentStatus">
+                {{ order.paymentStatus }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="items-card">
+          <h2>Order Items</h2>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of order.items">
+                <td>
+                  <strong>{{ item.productName }}</strong>
+                  <small *ngIf="item.notes">{{ item.notes }}</small>
+                </td>
+                <td>x{{ item.quantity }}</td>
+                <td>{{ item.price }} ALL</td>
+                <td>{{ item.subtotal }} ALL</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">Subtotal</td>
+                <td>{{ order.subtotal }} ALL</td>
+              </tr>
+              <tr>
+                <td colspan="3">Tax (20%)</td>
+                <td>{{ order.tax }} ALL</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="3"><strong>Total</strong></td>
+                <td><strong>{{ order.total }} ALL</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-card">
+          <h2>Actions</h2>
+          
+          <!-- Status Update Buttons -->
+          <div class="status-actions">
+            <button 
+              *ngIf="order.status === 'pending'"
+              class="btn btn-primary"
+              (click)="updateStatus(OrderStatus.CONFIRMED)"
+            >
+              ✓ Confirm Order
+            </button>
+            <button 
+              *ngIf="order.status === 'confirmed'"
+              class="btn btn-primary"
+              (click)="updateStatus(OrderStatus.PREPARING)"
+            >
+              🍳 Start Preparing
+            </button>
+            <button 
+              *ngIf="order.status === 'preparing'"
+              class="btn btn-primary"
+              (click)="updateStatus(OrderStatus.READY)"
+            >
+              ✓ Mark as Ready
+            </button>
+            <button 
+              *ngIf="order.status === 'ready' && order.paymentStatus === 'paid'"
+              class="btn btn-success"
+              (click)="updateStatus(OrderStatus.COMPLETED)"
+            >
+              ✓ Complete Order
+            </button>
+          </div>
+
+          <!-- Payment Actions -->
+          <div class="payment-actions" *ngIf="order.paymentStatus === 'pending'">
+            <h3>Process Payment</h3>
+            <div class="payment-methods">
+              <button 
+                class="btn btn-payment"
+                (click)="processPayment(PaymentMethod.CASH)"
+              >
+                💵 Cash
+              </button>
+              <button 
+                class="btn btn-payment"
+                (click)="processPayment(PaymentMethod.CARD)"
+              >
+                💳 Card
+              </button>
+              <button 
+                class="btn btn-payment"
+                (click)="processPayment(PaymentMethod.MOBILE)"
+              >
+                📱 Mobile
+              </button>
+            </div>
+          </div>
+
+          <!-- Cancel Button -->
+          <button 
+            *ngIf="order.status === 'pending' || order.status === 'confirmed'"
+            class="btn btn-danger"
+            (click)="cancelOrder()"
+          >
+            ✗ Cancel Order
+          </button>
+        </div>
+      </div>
+    </div>

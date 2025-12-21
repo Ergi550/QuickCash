@@ -1,0 +1,126 @@
+<div class="menu-container">
+      <div class="container">
+        <!-- Header -->
+        <div class="menu-header">
+          <h1>Our Menu</h1>
+          <p>Choose your favorite items</p>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter">
+          <button 
+            class="category-btn"
+            [class.active]="selectedCategory === null"
+            (click)="filterByCategory(null)"
+          >
+            All
+          </button>
+          <button 
+            class="category-btn"
+            [class.active]="selectedCategory === ProductCategory.BEVERAGE"
+            (click)="filterByCategory(ProductCategory.BEVERAGE)"
+          >
+            🥤 Beverages
+          </button>
+          <button 
+            class="category-btn"
+            [class.active]="selectedCategory === ProductCategory.FOOD"
+            (click)="filterByCategory(ProductCategory.FOOD)"
+          >
+            🍕 Food
+          </button>
+          <button 
+            class="category-btn"
+            [class.active]="selectedCategory === ProductCategory.DESSERT"
+            (click)="filterByCategory(ProductCategory.DESSERT)"
+          >
+            🍰 Desserts
+          </button>
+          <button 
+            class="category-btn"
+            [class.active]="selectedCategory === ProductCategory.OTHER"
+            (click)="filterByCategory(ProductCategory.OTHER)"
+          >
+            💠💠💠 Other
+          </button>
+
+
+
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading">
+          <div class="spinner"></div>
+          <p>Loading menu...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Products Grid -->
+        <div *ngIf="!isLoading && !errorMessage" class="products-grid">
+          <div *ngFor="let product of filteredProducts" class="product-card">
+            <div class="product-image">
+              <img 
+                [src]="product.imageUrl || 'assets/placeholder.png'" 
+                [alt]="product.name"
+                (error)="onImageError($event)"
+              />
+              <span 
+                class="badge out-of-stock" 
+                *ngIf="!product.isAvailable"
+              >
+                Out of Stock
+              </span>
+            </div>
+
+            <div class="product-info">
+              <h3 class="product-name">{{ product.name }}</h3>
+              <p class="product-description">{{ product.description }}</p>
+              
+              <div class="product-footer">
+                <div class="product-price">
+                  {{ product.price }} ALL
+                </div>
+                
+                <div class="product-actions">
+                  <div class="quantity-selector" *ngIf="getProductQuantity(product.id) > 0">
+                    <button 
+                      class="qty-btn"
+                      (click)="decreaseQuantity(product)"
+                    >
+                      -
+                    </button>
+                    <span class="qty-display">{{ getProductQuantity(product.id) }}</span>
+                    <button 
+                      class="qty-btn"
+                      (click)="increaseQuantity(product)"
+                      [disabled]="!product.isAvailable"
+                    >
+                      +
+                    </button>
+                  </div>
+                  
+                  <button 
+                    *ngIf="getProductQuantity(product.id) === 0"
+                    class="btn btn-primary"
+                    (click)="addToCart(product)"
+                    [disabled]="!product.isAvailable"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+          <h3>No products found</h3>
+          <p>Try selecting a different category</p>
+        </div>
+      </div>
+    </div>

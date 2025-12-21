@@ -1,0 +1,119 @@
+<div class="dashboard-page">
+      <div class="page-header">
+        <h1>📊 Dashboard</h1>
+        <button class="btn btn-primary" (click)="refreshData()">
+          🔄 Refresh
+        </button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card revenue">
+          <div class="stat-icon">💰</div>
+          <div class="stat-content">
+            <h3>Today's Revenue</h3>
+            <p class="stat-value">{{ todayRevenue }} ALL</p>
+            <small>{{ todayOrdersCount }} orders completed</small>
+          </div>
+        </div>
+
+        <div class="stat-card orders">
+          <div class="stat-icon">📋</div>
+          <div class="stat-content">
+            <h3>Active Orders</h3>
+            <p class="stat-value">{{ activeOrders }}</p>
+            <small>{{ pendingOrders }} pending</small>
+          </div>
+        </div>
+
+        <div class="stat-card products">
+          <div class="stat-icon">📦</div>
+          <div class="stat-content">
+            <h3>Low Stock Items</h3>
+            <p class="stat-value">{{ lowStockCount }}</p>
+            <small>Need restocking</small>
+          </div>
+        </div>
+
+        <div class="stat-card payments">
+          <div class="stat-icon">💳</div>
+          <div class="stat-content">
+            <h3>Pending Payments</h3>
+            <p class="stat-value">{{ pendingPayments }}</p>
+            <small>{{ pendingPaymentsAmount }} ALL</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Recent Orders</h2>
+          <a routerLink="/staff/orders" class="link">View All →</a>
+        </div>
+        <div class="orders-list">
+          <div *ngFor="let order of recentOrders" class="order-item">
+            <div class="order-info">
+              <strong>{{ order.orderNumber }}</strong>
+              <span class="badge" [class]="'badge-' + order.status">
+                {{ order.status }}
+              </span>
+            </div>
+            <div class="order-details">
+              <span>{{ order.customerName || 'Walk-in' }}</span>
+              <span class="amount">{{ order.total }} ALL</span>
+            </div>
+          </div>
+          <div *ngIf="recentOrders.length === 0" class="empty-message">
+            No recent orders
+          </div>
+        </div>
+      </div>
+
+      <!-- Low Stock Alerts -->
+      <div class="section-card alert-card">
+        <div class="section-header">
+          <h2>⚠️ Low Stock Alerts</h2>
+          <a routerLink="/manager/inventory" class="link">Manage →</a>
+        </div>
+        <div class="alerts-list">
+          <div *ngFor="let product of lowStockProducts" class="alert-item">
+            <div class="alert-info">
+              <strong>{{ product.name }}</strong>
+              <span class="stock-level" [class.critical]="product.stock < 5">
+                {{ product.stock }} left
+              </span>
+            </div>
+            <button class="btn-small" (click)="quickRestock(product)">
+              + Restock
+            </button>
+          </div>
+          <div *ngIf="lowStockProducts.length === 0" class="empty-message">
+            ✓ All products adequately stocked
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="actions-grid">
+          <a routerLink="/manager/products" class="action-btn">
+            <span class="action-icon">🛍️</span>
+            <span>Manage Products</span>
+          </a>
+          <a routerLink="/manager/inventory" class="action-btn">
+            <span class="action-icon">📦</span>
+            <span>Update Inventory</span>
+          </a>
+          <a routerLink="/manager/reports" class="action-btn">
+            <span class="action-icon">📈</span>
+            <span>View Reports</span>
+          </a>
+          <a routerLink="/manager/users" class="action-btn">
+            <span class="action-icon">👥</span>
+            <span>Manage Users</span>
+          </a>
+        </div>
+      </div>
+    </div>

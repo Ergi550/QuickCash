@@ -1,0 +1,90 @@
+ <div class="orders-container">
+      <div class="container">
+        <div class="orders-header">
+          <h1>My Orders</h1>
+          <p>Track your order history</p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading">
+          <div class="spinner"></div>
+          <p>Loading your orders...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && orders.length === 0 && !errorMessage" class="empty-state">
+          <h2>No orders yet</h2>
+          <p>You haven't placed any orders yet.</p>
+          <a href="/customer/menu" class="btn btn-primary">Start Shopping</a>
+        </div>
+
+        <!-- Orders List -->
+        <div *ngIf="!isLoading && orders.length > 0" class="orders-list">
+          <div *ngFor="let order of orders" class="order-card">
+            <div class="order-header">
+              <div class="order-number">
+                <strong>Order #{{ order.orderNumber }}</strong>
+                <span class="badge" [class]="getStatusClass(order.status)">
+                  {{ order.status }}
+                </span>
+              </div>
+              <div class="order-date">
+                {{ formatDate(order.createdAt) }}
+              </div>
+            </div>
+
+            <div class="order-body">
+              <div class="order-items">
+                <h3>Items:</h3>
+                <div *ngFor="let item of order.items" class="order-item">
+                  <span>{{ item.productName }} (x{{ item.quantity }})</span>
+                  <span>{{ item.subtotal }} ALL</span>
+                </div>
+              </div>
+
+              <div class="order-info">
+                <div class="info-row" *ngIf="order.tableNumber">
+                  <span>Table:</span>
+                  <span>#{{ order.tableNumber }}</span>
+                </div>
+                <div class="info-row" *ngIf="order.notes">
+                  <span>Notes:</span>
+                  <span>{{ order.notes }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="order-footer">
+              <div class="order-totals">
+                <div class="total-row">
+                  <span>Subtotal:</span>
+                  <span>{{ order.subtotal }} ALL</span>
+                </div>
+                <div class="total-row">
+                  <span>Tax:</span>
+                  <span>{{ order.tax }} ALL</span>
+                </div>
+                <div class="total-row grand-total">
+                  <span>Total:</span>
+                  <span>{{ order.total }} ALL</span>
+                </div>
+              </div>
+
+              <div class="order-status-info">
+                <div class="payment-status">
+                  Payment: 
+                  <span [class]="getPaymentStatusClass(order.paymentStatus)">
+                    {{ order.paymentStatus }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

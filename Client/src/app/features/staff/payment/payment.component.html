@@ -1,0 +1,179 @@
+<div class="payment-page">
+      <div class="page-header">
+        <h1>💳 Process Payment</h1>
+      </div>
+
+      <!-- Order Lookup -->
+      <div class="lookup-card">
+        <h2>Find Order</h2>
+        <form [formGroup]="lookupForm" (ngSubmit)="lookupOrder()">
+          <div class="lookup-group">
+            <input 
+              type="text"
+              formControlName="searchQuery"
+              placeholder="Enter Order Number or ID"
+              class="lookup-input"
+            />
+            <button type="submit" class="btn btn-primary">
+              🔍 Search
+            </button>
+          </div>
+        </form>
+
+        <div class="quick-orders" *ngIf="recentOrders.length > 0">
+          <h3>Ready for Payment:</h3>
+          <div class="order-chips">
+            <button 
+              *ngFor="let order of recentOrders"
+              class="order-chip"
+              (click)="selectOrder(order)"
+            >
+              {{ order.orderNumber }} - {{ order.total }} ALL
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Order Display -->
+      <div *ngIf="selectedOrder" class="order-display">
+        <div class="order-header">
+          <h2>Order #{{ selectedOrder.orderNumber }}</h2>
+          <span class="badge" [class]="'badge-' + selectedOrder.status">
+            {{ selectedOrder.status }}
+          </span>
+        </div>
+
+        <div class="order-details">
+          <div class="detail-row">
+            <span>Customer:</span>
+            <strong>{{ selectedOrder.customerName || 'Walk-in' }}</strong>
+          </div>
+          <div class="detail-row" *ngIf="selectedOrder.tableNumber">
+            <span>Table:</span>
+            <strong>#{{ selectedOrder.tableNumber }}</strong>
+          </div>
+        </div>
+
+        <div class="order-items">
+          <h3>Items:</h3>
+          <div *ngFor="let item of selectedOrder.items" class="item-row">
+            <span>{{ item.productName }} x{{ item.quantity }}</span>
+            <span>{{ item.subtotal }} ALL</span>
+          </div>
+        </div>
+
+        <div class="order-totals">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>{{ selectedOrder.subtotal }} ALL</span>
+          </div>
+          <div class="total-row">
+            <span>Tax (20%):</span>
+            <span>{{ selectedOrder.tax }} ALL</span>
+          </div>
+          <div class="total-row grand">
+            <span>Total:</span>
+            <strong>{{ selectedOrder.total }} ALL</strong>
+          </div>
+        </div>
+
+        <!-- Payment Already Processed -->
+        <div *ngIf="selectedOrder.paymentStatus === 'paid'" class="alert alert-success">
+          ✓ This order has already been paid ({{ selectedOrder.paymentMethod }})
+        </div>
+
+        <!-- Payment Form -->
+        <div *ngIf="selectedOrder.paymentStatus === 'pending'" class="payment-form">
+          <h3>Process Payment</h3>
+          
+          <form [formGroup]="paymentForm" (ngSubmit)="processPayment()">
+            <div class="form-group">
+              <label>Payment Method *</label>
+              <div class="method-buttons">
+                <button 
+                  type="button"
+                  class="method-btn"
+                  [class.active]="paymentForm.value.method === 'cash'"
+                  (click)="selectMethod('cash')"
+                >
+                  💵 Cash
+                </button>
+                <button 
+                  type="button"
+                  class="method-btn"
+                  [class.active]="paymentForm.value.method === 'card'"
+                  (click)="selectMethod('card')"
+                >
+                  💳 Card
+                </button>
+                <button 
+                  type="button"
+                  class="method-btn"
+                  [class.active]="paymentForm.value.method === 'mobile'"
+                  (click)="selectMethod('mobile')"
+                >
+                  📱 Mobile
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Amount *</label>
+              <input 
+                type="number"
+                formControlName="amount"
+                class="amount-input"
+                placeholder="Enter amount"
+              />
+              <button 
+                type="button"
+                class="btn-exact"
+                (click)="setExactAmount()"
+              >
+                Use Exact Amount ({{ selectedOrder.total }} ALL)
+              </button>
+            </div>
+
+            <div class="form-group" *ngIf="calculateChange() > 0">
+              <div class="change-display">
+                Change to return: <strong>{{ calculateChange() }} ALL</strong>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Notes (optional)</label>
+              <textarea 
+                formControlName="notes"
+                rows="2"
+                placeholder="Any notes about this payment..."
+              ></textarea>
+            </div>
+
+            <div class="alert alert-error" *ngIf="errorMessage">
+              {{ errorMessage }}
+            </div>
+
+            <button 
+              type="submit"
+              class="btn btn-success btn-large"
+              [disabled]="paymentForm.invalid || isProcessing"
+            >
+              {{ isProcessing ? 'Processing...' : '✓ Process Payment' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Success Message -->
+      <div *ngIf="showSuccess" class="success-overlay" (click)="closeSuccess()">
+        <div class="success-card" (click)="$event.stopPropagation()">
+          <div class="success-icon">✓</div>
+          <h2>Payment Successful!</h2>
+          <p>Receipt #{{ lastReceiptNumber }}</p>
+          <p class="amount">{{ lastPaymentAmount }} ALL</p>
+          <button class="btn btn-primary" (click)="closeSuccess()">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>

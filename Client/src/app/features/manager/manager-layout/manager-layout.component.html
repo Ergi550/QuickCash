@@ -1,0 +1,45 @@
+<div class="manager-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="logo">
+          <h1>👑 QuickCash</h1>
+          <p class="role-badge">Manager</p>
+        </div>
+
+        <nav class="nav">
+          <a routerLink="/manager/dashboard" routerLinkActive="active">
+            📊 Dashboard
+          </a>
+          <a routerLink="/manager/products" routerLinkActive="active">
+            🛍️ Products
+          </a>
+          <a routerLink="/manager/inventory" routerLinkActive="active">
+            📦 Inventory
+          </a>
+          <a routerLink="/manager/reports" routerLinkActive="active">
+            📈 Reports
+          </a>
+          <a routerLink="/manager/users" routerLinkActive="active">
+            👥 Users
+          </a>
+        </nav>
+
+        <div class="user-section">
+          <div class="user-info" *ngIf="currentUser">
+            <div class="avatar">{{ currentUser.firstName.charAt(0) }}</div>
+            <div class="user-details">
+              <strong>{{ currentUser.firstName }} {{ currentUser.lastName }}</strong>
+              <small>{{ currentUser.email }}</small>
+            </div>
+          </div>
+          <button class="btn-logout" (click)="logout()">
+            🚪 Logout
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
+    </div>

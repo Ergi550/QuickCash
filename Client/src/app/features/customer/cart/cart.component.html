@@ -1,0 +1,110 @@
+<div class="cart-container">
+      <div class="container">
+        <div class="cart-header">
+          <h1>🛒 Shopping Cart</h1>
+        </div>
+
+        <!-- Empty Cart -->
+        <div *ngIf="cartItems.length === 0" class="empty-cart">
+          <div class="empty-icon">🛒</div>
+          <h2>Your cart is empty</h2>
+          <p>Add some delicious items from our menu!</p>
+          <a routerLink="/customer/menu" class="btn btn-primary">
+            Browse Menu
+          </a>
+        </div>
+
+        <!-- Cart Items -->
+        <div *ngIf="cartItems.length > 0" class="cart-content">
+          <div class="cart-items">
+            <div *ngFor="let item of cartItems" class="cart-item">
+              <div class="item-image">
+                <img 
+                  [src]="item.product.imageUrl || 'assets/placeholder.png'" 
+                  [alt]="item.product.name"
+                />
+              </div>
+
+              <div class="item-details">
+                <h3>{{ item.product.name }}</h3>
+                <p class="item-price">{{ item.product.price }} ALL</p>
+                <p *ngIf="item.notes" class="item-notes">
+                  <strong>Notes:</strong> {{ item.notes }}
+                </p>
+              </div>
+
+              <div class="item-quantity">
+                <button 
+                  class="qty-btn"
+                  (click)="decreaseQuantity(item.product.id)"
+                >
+                  -
+                </button>
+                <span class="qty-display">{{ item.quantity }}</span>
+                <button 
+                  class="qty-btn"
+                  (click)="increaseQuantity(item.product.id)"
+                >
+                  +
+                </button>
+              </div>
+
+              <div class="item-subtotal">
+                {{ item.product.price * item.quantity }} ALL
+              </div>
+
+              <button 
+                class="btn-remove"
+                (click)="removeItem(item.product.id)"
+                title="Remove item"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <!-- Cart Summary -->
+          <div class="cart-summary">
+            <div class="summary-card">
+              <h2>Order Summary</h2>
+              
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span>{{ subtotal }} ALL</span>
+              </div>
+
+              <div class="summary-row">
+                <span>Tax (20%)</span>
+                <span>{{ tax }} ALL</span>
+              </div>
+
+              <div class="summary-row total">
+                <span>Total</span>
+                <span>{{ total }} ALL</span>
+              </div>
+
+              <button 
+                class="btn btn-primary btn-block"
+                (click)="proceedToCheckout()"
+              >
+                Proceed to Checkout
+              </button>
+
+              <a 
+                routerLink="/customer/menu" 
+                class="btn btn-outline btn-block"
+              >
+                Continue Shopping
+              </a>
+
+              <button 
+                class="btn btn-danger btn-block"
+                (click)="clearCart()"
+              >
+                Clear Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,98 @@
+<div class="orders-page">
+      <header class="page-header">
+        <h1>Orders Management</h1>
+        <button class="btn btn-primary" (click)="refreshOrders()">
+          🔄 Refresh
+        </button>
+      </header>
+
+      <!-- Status Filter Tabs -->
+      <div class="status-tabs">
+        <button 
+          class="tab-btn"
+          [class.active]="selectedStatus === null"
+          (click)="filterByStatus(null)"
+        >
+          All ({{ orders.length }})
+        </button>
+        <button 
+          class="tab-btn pending"
+          [class.active]="selectedStatus === OrderStatus.PENDING"
+          (click)="filterByStatus(OrderStatus.PENDING)"
+        >
+          Pending ({{ getCountByStatus(OrderStatus.PENDING) }})
+        </button>
+        <button 
+          class="tab-btn preparing"
+          [class.active]="selectedStatus === OrderStatus.PREPARING"
+          (click)="filterByStatus(OrderStatus.PREPARING)"
+        >
+          Preparing ({{ getCountByStatus(OrderStatus.PREPARING) }})
+        </button>
+        <button 
+          class="tab-btn ready"
+          [class.active]="selectedStatus === OrderStatus.READY"
+          (click)="filterByStatus(OrderStatus.READY)"
+        >
+          Ready ({{ getCountByStatus(OrderStatus.READY) }})
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading orders...</p>
+      </div>
+
+      <!-- Orders Grid -->
+      <div *ngIf="!isLoading" class="orders-grid">
+        <div 
+          *ngFor="let order of filteredOrders" 
+          class="order-card"
+          [class]="'status-' + order.status"
+          (click)="viewDetails(order.id)"
+        >
+          <div class="card-header">
+            <div class="order-info">
+              <h3>Order #{{ order.orderNumber }}</h3>
+              <span class="badge" [class]="'badge-' + order.status">
+                {{ order.status }}
+              </span>
+            </div>
+            <div class="order-time">
+              {{ formatTime(order.createdAt) }}
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="customer-info" *ngIf="order.customerName">
+              <strong>Customer:</strong> {{ order.customerName }}
+            </div>
+            <div class="table-info" *ngIf="order.tableNumber">
+              <strong>Table:</strong> #{{ order.tableNumber }}
+            </div>
+
+            <div class="items-list">
+              <div *ngFor="let item of order.items" class="item">
+                <span>{{ item.productName }} x{{ item.quantity }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="total">
+              Total: <strong>{{ order.total }} ALL</strong>
+            </div>
+            <div class="payment-status" [class]="'payment-' + order.paymentStatus">
+              {{ order.paymentStatus }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredOrders.length === 0" class="empty-state">
+          <h3>No orders found</h3>
+          <p>{{ getEmptyMessage() }}</p>
+        </div>
+      </div>
+    </div>

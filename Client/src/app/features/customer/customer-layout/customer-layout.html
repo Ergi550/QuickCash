@@ -1,0 +1,47 @@
+<div class="customer-layout">
+      <!-- Header -->
+      <header class="header">
+        <div class="container">
+          <div class="header-content">
+            <div class="logo">
+              <h1>🍕 QuickCash</h1>
+            </div>
+
+            <nav class="nav">
+              <a routerLink="/customer/menu" routerLinkActive="active">Menu</a>
+              <a routerLink="/customer/cart" routerLinkActive="active" class="cart-link">
+                🛒 Cart
+                <span class="badge" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+              </a>
+              <a routerLink="/customer/orders" routerLinkActive="active" *ngIf="currentUser">
+                My Orders
+              </a>
+            </nav>
+
+            <div class="user-menu">
+              <span *ngIf="currentUser" class="user-name">
+                👋 {{ currentUser.firstName }}
+              </span>
+              <button *ngIf="!currentUser" (click)="goToLogin()" class="btn btn-outline">
+                Login
+              </button>
+              <button *ngIf="currentUser" (click)="logout()" class="btn btn-outline">
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="container">
+          <p>&copy; 2025 QuickCash POS. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>

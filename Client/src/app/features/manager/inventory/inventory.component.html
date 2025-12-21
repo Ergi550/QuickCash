@@ -1,0 +1,43 @@
+<div class="inventory-page">
+      <div class="page-header">
+        <h1>📦 Inventory Management</h1>
+        <div class="filter-tabs">
+          <button [class.active]="filter === 'all'" (click)="setFilter('all')">All</button>
+          <button [class.active]="filter === 'low'" (click)="setFilter('low')">Low Stock</button>
+          <button [class.active]="filter === 'out'" (click)="setFilter('out')">Out of Stock</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Current Stock</th>
+              <th>Adjust Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of filteredProducts">
+              <td><strong>{{ product.name }}</strong></td>
+              <td>
+                <span [class.low]="product.stock < 10" [class.out]="product.stock === 0">
+                  {{ product.stock }}
+                </span>
+              </td>
+              <td>
+                <div class="adjust-controls">
+                  <input type="number" [(ngModel)]="adjustments[product.id]" placeholder="Quantity" min="1" />
+                  <button class="btn-add" (click)="adjust(product, 'add')">+ Add</button>
+                  <button class="btn-remove" (click)="adjust(product, 'subtract')">- Remove</button>
+                </div>
+              </td>
+              <td>
+                <button class="btn-set" (click)="setStock(product)">Set Stock</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
