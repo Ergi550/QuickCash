@@ -68,14 +68,14 @@ export class MenuComponent implements OnInit {
   }
 
   increaseQuantity(product: Product): void {
-    const currentQty = this.getProductQuantity(product.id);
-    this.cartService.updateQuantity(product.id, currentQty + 1);
+    const currentQty = this.getProductQuantity(product.product_id);
+    this.cartService.updateQuantity(product.product_id, currentQty + 1);
   }
 
   decreaseQuantity(product: Product): void {
-    const currentQty = this.getProductQuantity(product.id);
+    const currentQty = this.getProductQuantity(product.product_id);
     if (currentQty > 0) {
-      this.cartService.updateQuantity(product.id, currentQty - 1);
+      this.cartService.updateQuantity(product.product_id, currentQty - 1);
     }
   }
 

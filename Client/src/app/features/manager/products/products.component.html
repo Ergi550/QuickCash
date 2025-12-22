@@ -23,22 +23,22 @@
           <tbody>
             <tr *ngFor="let product of products">
               <td>
-                <strong>{{ product.name }}</strong>
+                <strong>{{ product.product_name }}</strong>
                 <small>{{ product.description }}</small>
               </td>
               <td>
                 <span class="category-badge">{{ product.category }}</span>
               </td>
-              <td>{{ product.price }} ALL</td>
-              <td>{{ product.cost }} ALL</td>
+              <td>{{ product.selling_price }} ALL</td>
+              <td>{{ product.cost_price }} ALL</td>
               <td>
-                <span [class.low-stock]="product.stock < 10">
-                  {{ product.stock }}
+                <span [class.low-stock]="product.current_quantity < 10">
+                  {{ product.current_quantity }}
                 </span>
               </td>
               <td>
-                <span class="status-badge" [class.active]="product.isAvailable">
-                  {{ product.isAvailable ? 'Yes' : 'No' }}
+                <span class="status-badge" [class.active]="product.is_available">
+                  {{ product.is_available ? 'Yes' : 'No' }}
                 </span>
               </td>
               <td>
@@ -51,7 +51,7 @@
                     (click)="toggleAvailability(product)"
                     title="Toggle Availability"
                   >
-                    {{ product.isAvailable ? '🔴' : '🟢' }}
+                    {{ product.is_available ? '🔴' : '🟢' }}
                   </button>
                   <button class="btn-icon danger" (click)="deleteProduct(product)" title="Delete">
                     🗑️

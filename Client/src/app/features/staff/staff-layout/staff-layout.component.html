@@ -17,9 +17,9 @@
 
         <div class="user-section">
           <div class="user-info" *ngIf="currentUser">
-            <div class="avatar">{{ currentUser.firstName.charAt(0) }}</div>
+            <div class="avatar">{{ currentUser.full_name.charAt(0) }}</div>
             <div class="user-details">
-              <strong>{{ currentUser.firstName }} {{ currentUser.lastName }}</strong>
+              <strong>{{ currentUser.full_name }}</strong>
               <small>{{ currentUser.email }}</small>
             </div>
           </div>

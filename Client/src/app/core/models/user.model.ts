@@ -11,16 +11,15 @@ export enum UserRole {
  * User interface
  */
 export interface User {
-  id: string;
-  username: string;
+  user_id: string;
+  //username: string;
   email: string;
   role: UserRole;
-  firstName: string;
-  lastName: string;
+  full_name: string;
   phone?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
@@ -37,9 +36,9 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  full_name: string;
   phone?: string;
+  role : UserRole;
 }
 
 /**

@@ -45,36 +45,36 @@ export class InventoryComponent implements OnInit {
 
   applyFilter(): void {
     if (this.filter === 'low') {
-      this.filteredProducts = this.products.filter(p => p.stock <= 10 && p.stock > 0);
+      this.filteredProducts = this.products.filter(p => p.current_quantity <= 10 && p.current_quantity > 0);
     } else if (this.filter === 'out') {
-      this.filteredProducts = this.products.filter(p => p.stock === 0);
+      this.filteredProducts = this.products.filter(p => p.current_quantity === 0);
     } else {
       this.filteredProducts = this.products;
     }
   }
 
   adjust(product: Product, action: 'add' | 'subtract'): void {
-    const qty = this.adjustments[product.id] || 0;
+    const qty = this.adjustments[product.product_id] || 0;
     if (qty <= 0) {
       alert('Please enter a quantity');
       return;
     }
-    
-    this.productService.updateInventory({ productId: product.id, quantity: qty, action }).subscribe({
+
+    this.productService.updateInventory({ product_id: product.product_id, current_quantity: qty, action }).subscribe({
       next: () => {
         this.loadProducts();
-        this.adjustments[product.id] = 0;
+        this.adjustments[product.product_id] = 0;
       },
       error: () => alert('Failed to update stock')
     });
   }
 
   setStock(product: Product): void {
-    const qty = prompt(`Set stock for ${product.name}:`, product.stock.toString());
+    const qty = prompt(`Set stock for ${product.product_name}:`, product.current_quantity.toString());
     if (qty && !isNaN(Number(qty))) {
       this.productService.updateInventory({ 
-        productId: product.id, 
-        quantity: Number(qty), 
+        product_id: product.product_id,
+        current_quantity: Number(qty), 
         action: 'set' 
       }).subscribe({
         next: () => this.loadProducts(),

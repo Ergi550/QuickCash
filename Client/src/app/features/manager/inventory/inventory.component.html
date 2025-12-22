@@ -20,15 +20,15 @@
           </thead>
           <tbody>
             <tr *ngFor="let product of filteredProducts">
-              <td><strong>{{ product.name }}</strong></td>
+              <td><strong>{{ product.product_name }}</strong></td>
               <td>
-                <span [class.low]="product.stock < 10" [class.out]="product.stock === 0">
-                  {{ product.stock }}
+                <span [class.low]="product.current_quantity < 10" [class.out]="product.current_quantity === 0">
+                  {{ product.current_quantity }}
                 </span>
               </td>
               <td>
                 <div class="adjust-controls">
-                  <input type="number" [(ngModel)]="adjustments[product.id]" placeholder="Quantity" min="1" />
+                  <input type="number" [(ngModel)]="adjustments[product.product_id]" placeholder="Quantity" min="1" />
                   <button class="btn-add" (click)="adjust(product, 'add')">+ Add</button>
                   <button class="btn-remove" (click)="adjust(product, 'subtract')">- Remove</button>
                 </div>

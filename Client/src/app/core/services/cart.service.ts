@@ -27,7 +27,7 @@ export class CartService {
     
     // Check if product already in cart
     const existingItemIndex = currentCart.findIndex(
-      item => item.product.id === product.id
+      item => item.product.id === product.product_id
     );
 
     if (existingItemIndex > -1) {
@@ -40,10 +40,10 @@ export class CartService {
       // Add new item
       const cartItem: CartItem = {
         product: {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          imageUrl: product.imageUrl
+          id: product.product_id,
+          name: product.product_name,
+          price: product.cost_price,
+          imageUrl: product.image_url
         },
         quantity,
         notes

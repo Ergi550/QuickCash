@@ -4,27 +4,27 @@ import { PaymentMethod, PaymentStatus } from './order.model';
  * Payment interface
  */
 export interface Payment {
-  id: string;
-  orderId: string;
-  amount: number;
-  method: PaymentMethod;
-  status: PaymentStatus;
-  transactionId?: string;
-  receiptNumber: string;
-  processedBy?: string;
-  processedAt?: Date;
+  payment_id: string;
+  order_id: string;
+  amount_paid: number;
+  payment_method: PaymentMethod;
+  payment_status: PaymentStatus;
+  transaction_id?: string;
+  receipt_number: string;
+  processed_by?: string;
+  processed_at?: Date;
   notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
  * Process payment request
  */
 export interface ProcessPaymentRequest {
-  orderId: string;
-  amount: number;
-  method: PaymentMethod;
+  order_id: string;
+  amount_paid: number;
+  payment_method: PaymentMethod;
   notes?: string;
 }
 
@@ -34,7 +34,7 @@ export interface ProcessPaymentRequest {
 export interface PaymentResponse {
   success: boolean;
   payment: Payment;
-  receiptUrl?: string;
+  receipt_url?: string;
   message?: string;
 }
 export interface ApiResponse<T> {

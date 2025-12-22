@@ -36,7 +36,7 @@ export class OrdersComponent implements OnInit {
             next:(response)=>{
                 if(response.success&&response.data){
                     this.orders=response.data.sort((a,b)=>
-                    new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime()
+                    new Date(b.created_at).getTime()-new Date(a.created_at).getTime()
                 );
                     this.applyFilter();
                 }

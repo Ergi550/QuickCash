@@ -64,50 +64,50 @@
           <div *ngFor="let product of filteredProducts" class="product-card">
             <div class="product-image">
               <img 
-                [src]="product.imageUrl || 'assets/placeholder.png'" 
-                [alt]="product.name"
+                [src]="product.image_url || 'assets/placeholder.png'" 
+                [alt]="product.product_name"
                 (error)="onImageError($event)"
               />
               <span 
                 class="badge out-of-stock" 
-                *ngIf="!product.isAvailable"
+                *ngIf="!product.is_available"
               >
                 Out of Stock
               </span>
             </div>
 
             <div class="product-info">
-              <h3 class="product-name">{{ product.name }}</h3>
+              <h3 class="product-name">{{ product.product_name }}</h3>
               <p class="product-description">{{ product.description }}</p>
               
               <div class="product-footer">
                 <div class="product-price">
-                  {{ product.price }} ALL
+                  {{ product.cost_price }} ALL
                 </div>
                 
                 <div class="product-actions">
-                  <div class="quantity-selector" *ngIf="getProductQuantity(product.id) > 0">
+                  <div class="quantity-selector" *ngIf="getProductQuantity(product.product_id) > 0">
                     <button 
                       class="qty-btn"
                       (click)="decreaseQuantity(product)"
                     >
                       -
                     </button>
-                    <span class="qty-display">{{ getProductQuantity(product.id) }}</span>
+                    <span class="qty-display">{{ getProductQuantity(product.product_id) }}</span>
                     <button 
                       class="qty-btn"
                       (click)="increaseQuantity(product)"
-                      [disabled]="!product.isAvailable"
+                      [disabled]="!product.is_available"
                     >
                       +
                     </button>
                   </div>
                   
                   <button 
-                    *ngIf="getProductQuantity(product.id) === 0"
+                    *ngIf="getProductQuantity(product.product_id) === 0"
                     class="btn btn-primary"
                     (click)="addToCart(product)"
-                    [disabled]="!product.isAvailable"
+                    [disabled]="!product.is_available"
                   >
                     Add to Cart
                   </button>

@@ -16,21 +16,21 @@
                   <input 
                     type="text" 
                     id="customerName"
-                    formControlName="customerName"
+                    formControlName="customer_name"
                     placeholder="Enter your name"
                   />
                   <span class="error-message" 
-                    *ngIf="checkoutForm.get('customerName')?.invalid && checkoutForm.get('customerName')?.touched">
+                    *ngIf="checkoutForm.get('customer_name')?.invalid && checkoutForm.get('customer_name')?.touched">
                     Name is required
                   </span>
                 </div>
 
                 <div class="form-group">
-                  <label for="tableNumber">Table Number (optional)</label>
+                  <label for="table_number">Table Number (optional)</label>
                   <input 
                     type="number" 
-                    id="tableNumber"
-                    formControlName="tableNumber"
+                    id="table_number"
+                    formControlName="table_number"
                     placeholder="Enter table number"
                   />
                 </div>

@@ -75,8 +75,8 @@ export class ProductService {
    */
   updateInventory(update: InventoryUpdate): Observable<ApiResponse<Product>> {
     return this.http.patch<ApiResponse<Product>>(
-      `${this.API_URL}/${update.productId}/inventory`,
-      { quantity: update.quantity, action: update.action }
+      `${this.API_URL}/${update.product_id}/inventory`,
+      { quantity: update.current_quantity, action: update.action }
     );
   }
 

@@ -57,7 +57,7 @@ export class OrderDetailsComponent implements OnInit {
   updateStatus(newStatus: OrderStatus): void {
     if (!this.order) return;
 
-    this.orderService.updateOrderStatus(this.order.id, newStatus).subscribe({
+    this.orderService.updateOrderStatus(this.order.order_id, newStatus).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.order = response.data;
@@ -79,14 +79,14 @@ export class OrderDetailsComponent implements OnInit {
     }
 
     this.paymentService.processPayment({
-      orderId: this.order.id,
-      amount: this.order.total,
-      method
+      order_id: this.order.order_id,
+      amount_paid : this.order.total,
+      payment_method : method 
     }).subscribe({
       next: (response) => {
         if (response.success) {
           alert('Payment processed successfully!');
-          this.loadOrder(this.order!.id);
+          this.loadOrder(this.order!.order_id);
         } else {
           alert(response.data?.message || 'Payment failed');
         }
@@ -105,7 +105,7 @@ export class OrderDetailsComponent implements OnInit {
       return;
     }
 
-    this.orderService.cancelOrder(this.order.id).subscribe({
+    this.orderService.cancelOrder(this.order.order_id).subscribe({
       next: (response) => {
         if (response.success) {
           alert('Order cancelled successfully');

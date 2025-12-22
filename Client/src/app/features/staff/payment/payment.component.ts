@@ -51,7 +51,7 @@ export class PaymentComponent implements OnInit {
     this.orderService.getAllOrders('ready' as any).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.recentOrders = response.data.filter(o => o.paymentStatus === 'pending');
+          this.recentOrders = response.data.filter(o => o.payment_status === 'pending');
         }
       }
     });
@@ -64,7 +64,7 @@ export class PaymentComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           const order = response.data.find(o => 
-            o.orderNumber === query || o.id === query
+            o.order_number === query || o.order_id === query
           );
           
           if (order) {
@@ -109,18 +109,17 @@ export class PaymentComponent implements OnInit {
     this.errorMessage = '';
 
     const paymentData = {
-      orderId: this.selectedOrder.id,
-      amount: this.paymentForm.value.amount,
-      method: this.paymentForm.value.method,
-      notes: this.paymentForm.value.notes
+      order_id: this.selectedOrder.order_id,
+      amount_paid: this.paymentForm.value.amount,
+      payment_method: this.paymentForm.value.method
     };
 
     this.paymentService.processPayment(paymentData).subscribe({
       next: (response) => {
         this.isProcessing = false;
         if (response.success && response.data) {
-          this.lastReceiptNumber = response.data.payment.receiptNumber;
-          this.lastPaymentAmount = response.data.payment.amount;
+          this.lastReceiptNumber = response.data.payment.receipt_number;
+          this.lastPaymentAmount = response.data.payment.amount_paid;
           this.showSuccess = true;
           
           // Reset

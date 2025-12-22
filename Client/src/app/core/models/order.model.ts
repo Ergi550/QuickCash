@@ -33,10 +33,10 @@ export enum PaymentMethod {
  * Order item interface
  */
 export interface OrderItem {
-  productId: string;
-  productName: string;
+  product_id: string;
+  product_name: string;
   quantity: number;
-  price: number;
+  unit_price: number;
   subtotal: number;
   notes?: string;
 }
@@ -45,37 +45,37 @@ export interface OrderItem {
  * Order interface
  */
 export interface Order {
-  id: string;
-  orderNumber: string;
-  customerId?: string;
-  customerName?: string;
+  order_id: string;
+  order_number: string;
+  customer_id?: string;
+  customer_name?: string;
   items: OrderItem[];
   subtotal: number;
-  tax: number;
+  tax_amount: number;
   discount: number;
   total: number;
   status: OrderStatus;
-  paymentStatus: PaymentStatus;
-  paymentMethod?: PaymentMethod;
-  tableNumber?: number;
+  payment_status: PaymentStatus;
+  payment_method?: PaymentMethod;
+  table_number?: number;
   notes?: string;
-  staffId?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  staff_id?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
  * Create order request
  */
 export interface CreateOrderRequest {
-  customerId?: string;
-  customerName?: string;
+  customer_id?: string;
+  customer_name?: string;
   items: {
-    productId: string;
+    product_id: string;
     quantity: number;
     notes?: string;
   }[];
-  tableNumber?: number;
+  table_number?: number;
   notes?: string;
 }
 
@@ -84,6 +84,7 @@ export interface CreateOrderRequest {
  */
 export interface CartItem {
   product: {
+    product_id: any;
     id: string;
     name: string;
     price: number;

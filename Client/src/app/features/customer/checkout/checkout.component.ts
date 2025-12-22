@@ -37,7 +37,7 @@ export class CheckoutComponent implements OnInit {
     const currentUser = this.authService.currentUserValue;
     
     this.checkoutForm = this.fb.group({
-      customerName: [currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : '', Validators.required],
+      customerName: [currentUser ? ` ${currentUser.full_name}` : '', Validators.required],
       tableNumber: [''],
       notes: ['']
     });
@@ -70,12 +70,12 @@ export class CheckoutComponent implements OnInit {
     this.errorMessage = '';
 
     const orderData = {
-      customerId: this.authService.currentUserValue?.id,
-      customerName: this.checkoutForm.value.customerName,
-      tableNumber: this.checkoutForm.value.tableNumber || undefined,
+      customer_id: this.authService.currentUserValue?.user_id,
+      customer_name: this.checkoutForm.value.customer_name,
+      table_number: this.checkoutForm.value.table_number || undefined,
       notes: this.checkoutForm.value.notes || undefined,
       items: this.cartItems.map(item => ({
-        productId: item.product.id,
+        product_id: item.product.product_id,
         quantity: item.quantity,
         notes: item.notes
       }))
@@ -88,7 +88,7 @@ export class CheckoutComponent implements OnInit {
           this.cartService.clearCart();
           
           // Show success and redirect
-          alert(`Order placed successfully! Order #${response.data.orderNumber}`);
+          alert(`Order placed successfully! Order #${response.data.order_number}`);
           this.router.navigate(['/customer/orders']);
         }
       },

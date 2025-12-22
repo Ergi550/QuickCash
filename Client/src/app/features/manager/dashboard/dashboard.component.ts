@@ -56,9 +56,9 @@ export class DashboardComponent implements OnInit {
             o.status !== 'completed' && o.status !== 'cancelled'
           ).length;
           this.pendingOrders = orders.filter(o => o.status === 'pending').length;
-          this.pendingPayments = orders.filter(o => o.paymentStatus === 'pending').length;
+          this.pendingPayments = orders.filter(o => o.payment_status === 'pending').length;
           this.pendingPaymentsAmount = orders
-            .filter(o => o.paymentStatus === 'pending')
+            .filter(o => o.payment_status === 'pending')
             .reduce((sum, o) => sum + o.total, 0);
         }
       }
@@ -82,7 +82,7 @@ export class DashboardComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.recentOrders = response.data
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 5);
         }
       }
@@ -105,11 +105,11 @@ export class DashboardComponent implements OnInit {
   }
 
   quickRestock(product: Product): void {
-    const quantity = prompt(`How many units of ${product.name} to add?`, '10');
+    const quantity = prompt(`How many units of ${product.product_name} to add?`, '10');
     if (quantity && !isNaN(Number(quantity))) {
       this.productService.updateInventory({
-        productId: product.id,
-        quantity: Number(quantity),
+        product_id: product.product_id,
+        current_quantity: Number(quantity),
         action: 'add'
       }).subscribe({
         next: () => {

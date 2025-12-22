@@ -3,7 +3,7 @@
         <button class="btn-back" (click)="goBack()">
           ← Back to Orders
         </button>
-        <h1 *ngIf="order">Order #{{ order.orderNumber }}</h1>
+        <h1 *ngIf="order">Order #{{ order.order_number }}</h1>
       </div>
 
       <div *ngIf="isLoading" class="loading">
@@ -23,15 +23,15 @@
             </div>
             <div class="info-item">
               <label>Created</label>
-              <span>{{ formatDate(order.createdAt) }}</span>
+              <span>{{ formatDate(order.created_at) }}</span>
             </div>
             <div class="info-item">
               <label>Customer</label>
-              <span>{{ order.customerName || 'Walk-in' }}</span>
+              <span>{{ order.customer_name || 'Walk-in' }}</span>
             </div>
-            <div class="info-item" *ngIf="order.tableNumber">
+            <div class="info-item" *ngIf="order.table_number">
               <label>Table</label>
-              <span>#{{ order.tableNumber }}</span>
+              <span>#{{ order.table_number }}</span>
             </div>
             <div class="info-item" *ngIf="order.notes">
               <label>Notes</label>
@@ -39,8 +39,8 @@
             </div>
             <div class="info-item">
               <label>Payment</label>
-              <span [class]="'payment-' + order.paymentStatus">
-                {{ order.paymentStatus }}
+              <span [class]="'payment-' + order.payment_status">
+                {{ order.payment_status }}
               </span>
             </div>
           </div>
@@ -61,11 +61,11 @@
             <tbody>
               <tr *ngFor="let item of order.items">
                 <td>
-                  <strong>{{ item.productName }}</strong>
+                  <strong>{{ item.product_name }}</strong>
                   <small *ngIf="item.notes">{{ item.notes }}</small>
                 </td>
                 <td>x{{ item.quantity }}</td>
-                <td>{{ item.price }} ALL</td>
+                <td>{{ item.unit_price }} ALL</td>
                 <td>{{ item.subtotal }} ALL</td>
               </tr>
             </tbody>
@@ -76,7 +76,7 @@
               </tr>
               <tr>
                 <td colspan="3">Tax (20%)</td>
-                <td>{{ order.tax }} ALL</td>
+                <td>{{ order.tax_amount }} ALL</td>
               </tr>
               <tr class="total-row">
                 <td colspan="3"><strong>Total</strong></td>
@@ -114,7 +114,7 @@
               ✓ Mark as Ready
             </button>
             <button 
-              *ngIf="order.status === 'ready' && order.paymentStatus === 'paid'"
+              *ngIf="order.status === 'ready' && order.payment_status === 'paid'"
               class="btn btn-success"
               (click)="updateStatus(OrderStatus.COMPLETED)"
             >
@@ -123,7 +123,7 @@
           </div>
 
           <!-- Payment Actions -->
-          <div class="payment-actions" *ngIf="order.paymentStatus === 'pending'">
+          <div class="payment-actions" *ngIf="order.payment_status === 'pending'">
             <h3>Process Payment</h3>
             <div class="payment-methods">
               <button 

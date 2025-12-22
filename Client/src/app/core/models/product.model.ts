@@ -12,39 +12,39 @@ export enum ProductCategory {
  * Product interface
  */
 export interface Product {
-  id: string;
-  name: string;
+  product_id: string;
+  product_name: string;
   description: string;
   category: ProductCategory;
-  price: number;
-  cost: number;
-  stock: number;
-  imageUrl?: string;
-  isAvailable: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  selling_price: number;
+  cost_price: number;
+  current_quantity: number;
+  image_url?: string;
+  is_available: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
  * Product form data (for create/update)
  */
 export interface ProductFormData {
-  name: string;
+  product_name: string;
   description: string;
   category: ProductCategory;
-  price: number;
-  cost: number;
-  stock: number;
-  imageUrl?: string;
-  isAvailable?: boolean;
+  selling_price: number;
+  cost_price: number;
+  current_quantity: number;
+  image_url?: string;
+  is_available?: boolean;
 }
 
 /**
  * Inventory update request
  */
 export interface InventoryUpdate {
-  productId: string;
-  quantity: number;
+  product_id: string;
+  current_quantity: number;
   action: 'add' | 'subtract' | 'set';
 }
 

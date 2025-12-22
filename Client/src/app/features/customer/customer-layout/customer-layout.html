@@ -20,7 +20,7 @@
 
             <div class="user-menu">
               <span *ngIf="currentUser" class="user-name">
-                👋 {{ currentUser.firstName }}
+                👋 {{ currentUser.full_name }}
               </span>
               <button *ngIf="!currentUser" (click)="goToLogin()" class="btn btn-outline">
                 Login

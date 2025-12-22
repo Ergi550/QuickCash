@@ -54,13 +54,13 @@
         <div class="orders-list">
           <div *ngFor="let order of recentOrders" class="order-item">
             <div class="order-info">
-              <strong>{{ order.orderNumber }}</strong>
+              <strong>{{ order.order_number }}</strong>
               <span class="badge" [class]="'badge-' + order.status">
                 {{ order.status }}
               </span>
             </div>
             <div class="order-details">
-              <span>{{ order.customerName || 'Walk-in' }}</span>
+              <span>{{ order.customer_name || 'Walk-in' }}</span>
               <span class="amount">{{ order.total }} ALL</span>
             </div>
           </div>
@@ -79,9 +79,9 @@
         <div class="alerts-list">
           <div *ngFor="let product of lowStockProducts" class="alert-item">
             <div class="alert-info">
-              <strong>{{ product.name }}</strong>
-              <span class="stock-level" [class.critical]="product.stock < 5">
-                {{ product.stock }} left
+              <strong>{{ product.product_name }}</strong>
+              <span class="stock-level" [class.critical]="product.current_quantity < 5">
+                {{ product.current_quantity }} left
               </span>
             </div>
             <button class="btn-small" (click)="quickRestock(product)">

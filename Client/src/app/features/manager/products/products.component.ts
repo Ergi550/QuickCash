@@ -74,7 +74,7 @@ export class ProductsComponent implements OnInit {
     const productData = this.productForm.value;
 
     if (this.editingProduct) {
-      this.productService.updateProduct(this.editingProduct.id, productData).subscribe({
+      this.productService.updateProduct(this.editingProduct.product_id, productData).subscribe({
         next: () => {
           alert('Product updated!');
           this.loadProducts();
@@ -95,8 +95,8 @@ export class ProductsComponent implements OnInit {
   }
 
   toggleAvailability(product: Product): void {
-    this.productService.updateProduct(product.id, {
-      isAvailable: !product.isAvailable
+    this.productService.updateProduct(product.product_id, {
+      is_available: !product.is_available
     }).subscribe({
       next: () => {
         this.loadProducts();
@@ -105,8 +105,8 @@ export class ProductsComponent implements OnInit {
   }
 
   deleteProduct(product: Product): void {
-    if (confirm(`Delete ${product.name}?`)) {
-      this.productService.deleteProduct(product.id).subscribe({
+    if (confirm(`Delete ${product.product_name}?`)) {
+      this.productService.deleteProduct(product.product_id).subscribe({
         next: () => {
           alert('Product deleted!');
           this.loadProducts();

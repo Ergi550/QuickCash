@@ -40,23 +40,23 @@ export class CartComponent implements OnInit {
     this.total = this.cartService.total;
   }
 
-  increaseQuantity(productId: string): void {
-    const item = this.cartItems.find(i => i.product.id === productId);
+  increaseQuantity(product_id: string): void {
+    const item = this.cartItems.find(i => i.product.id === product_id);
     if (item) {
-      this.cartService.updateQuantity(productId, item.quantity + 1);
+      this.cartService.updateQuantity(product_id, item.quantity + 1);
     }
   }
 
-  decreaseQuantity(productId: string): void {
-    const item = this.cartItems.find(i => i.product.id === productId);
+  decreaseQuantity(product_id: string): void {
+    const item = this.cartItems.find(i => i.product.id === product_id);
     if (item && item.quantity > 1) {
-      this.cartService.updateQuantity(productId, item.quantity - 1);
+      this.cartService.updateQuantity(product_id, item.quantity - 1);
     }
   }
 
-  removeItem(productId: string): void {
+  removeItem(product_id: string): void {
     if (confirm('Remove this item from cart?')) {
-      this.cartService.removeFromCart(productId);
+      this.cartService.removeFromCart(product_id);
     }
   }
 

@@ -50,31 +50,31 @@
           *ngFor="let order of filteredOrders" 
           class="order-card"
           [class]="'status-' + order.status"
-          (click)="viewDetails(order.id)"
+          (click)="viewDetails(order.order_id)"
         >
           <div class="card-header">
             <div class="order-info">
-              <h3>Order #{{ order.orderNumber }}</h3>
+              <h3>Order #{{ order.order_number }}</h3>
               <span class="badge" [class]="'badge-' + order.status">
                 {{ order.status }}
               </span>
             </div>
             <div class="order-time">
-              {{ formatTime(order.createdAt) }}
+              {{ formatTime(order.created_at) }}
             </div>
           </div>
 
           <div class="card-body">
-            <div class="customer-info" *ngIf="order.customerName">
-              <strong>Customer:</strong> {{ order.customerName }}
+            <div class="customer-info" *ngIf="order.customer_name">
+              <strong>Customer:</strong> {{ order.customer_name }}
             </div>
-            <div class="table-info" *ngIf="order.tableNumber">
-              <strong>Table:</strong> #{{ order.tableNumber }}
+            <div class="table-info" *ngIf="order.table_number">
+              <strong>Table:</strong> #{{ order.table_number }}
             </div>
 
             <div class="items-list">
               <div *ngFor="let item of order.items" class="item">
-                <span>{{ item.productName }} x{{ item.quantity }}</span>
+                <span>{{ item.product_name }} x{{ item.quantity }}</span>
               </div>
             </div>
           </div>
@@ -83,8 +83,8 @@
             <div class="total">
               Total: <strong>{{ order.total }} ALL</strong>
             </div>
-            <div class="payment-status" [class]="'payment-' + order.paymentStatus">
-              {{ order.paymentStatus }}
+            <div class="payment-status" [class]="'payment-' + order.payment_status">
+              {{ order.payment_status }}
             </div>
           </div>
         </div>

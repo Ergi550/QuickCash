@@ -40,11 +40,11 @@ export class MyOrdersComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.orderService.getCustomerOrders(currentUser.id).subscribe({
+    this.orderService.getCustomerOrders(currentUser.user_id).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.orders = response.data.sort((a, b) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
         }
         this.isLoading = false;
