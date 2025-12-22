@@ -40,6 +40,7 @@ export class CartService {
       // Add new item
       const cartItem: CartItem = {
         product: {
+          product_id: product.product_id,
           id: product.product_id,
           name: product.product_name,
           price: product.cost_price,
