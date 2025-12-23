@@ -1,0 +1,291 @@
+<div class="pos-container">
+  <!-- Left Side - Products -->
+  <div class="products-section">
+    <!-- Search & Categories -->
+    <div class="products-header">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm"
+          (input)="searchProducts()"
+          placeholder="🔍 Search products..."
+        />
+      </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+      <button 
+        class="category-tab"
+        [class.active]="selectedCategoryId === null"
+        (click)="filterByCategory(null)"
+      >
+        🍽️ All
+      </button>
+      <button 
+        *ngFor="let category of categories"
+        class="category-tab"
+        [class.active]="selectedCategoryId === category.category_id"
+        (click)="filterByCategory(category.category_id)"
+      >
+        {{ category.icon || '📦' }} {{ category.category_name }}
+      </button>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid" *ngIf="!isLoading">
+      <div 
+        *ngFor="let product of filteredProducts" 
+        class="product-card"
+        [class.disabled]="!product.is_available"
+        (click)="product.is_available && addToCart(product)"
+      >
+        <div class="product-image">
+          <span class="product-emoji">{{ getProductEmoji(product.category_name) }}</span>
+          <span class="stock-badge" *ngIf="product.current_quantity < 10">
+            {{ product.current_quantity }} left
+          </span>
+        </div>
+        <div class="product-info">
+          <h4>{{ product.product_name }}</h4>
+          <p class="product-price">{{ product.selling_price | number:'1.0-0' }} ALL</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="loading">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
+
+    <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+      <p>No products found</p>
+    </div>
+  </div>
+
+  <!-- Right Side - Cart -->
+  <div class="cart-section">
+    <div class="cart-header">
+      <h2>🛒 Current Order</h2>
+      <button class="btn-clear" (click)="clearCart()" *ngIf="cart.length > 0">
+        Clear All
+      </button>
+    </div>
+
+    <!-- Customer Info -->
+    <div class="customer-info">
+      <div class="info-row">
+        <input 
+          type="text" 
+          [(ngModel)]="tableNumber" 
+          placeholder="Table #"
+          class="input-small"
+        />
+        <input 
+          type="text" 
+          [(ngModel)]="customerName" 
+          placeholder="Customer Name"
+          class="input-medium"
+        />
+      </div>
+    </div>
+
+    <!-- Cart Items -->
+    <div class="cart-items">
+      <div *ngIf="cart.length === 0" class="empty-cart">
+        <span class="empty-icon">🛒</span>
+        <p>Cart is empty</p>
+        <small>Click products to add</small>
+      </div>
+
+      <div *ngFor="let item of cart; let i = index" class="cart-item">
+        <div class="item-info">
+          <h4>{{ item.product.product_name }}</h4>
+          <p class="item-price">{{ item.product.selling_price | number:'1.0-0' }} ALL</p>
+        </div>
+        <div class="item-controls">
+          <button class="qty-btn" (click)="updateQuantity(i, -1)">−</button>
+          <input 
+            type="number" 
+            [value]="item.quantity"
+            (change)="setQuantity(i, $any($event.target).valueAsNumber)"
+            class="qty-input"
+            min="1"
+          />
+          <button class="qty-btn" (click)="updateQuantity(i, 1)">+</button>
+        </div>
+        <div class="item-total">
+          {{ item.product.selling_price * item.quantity | number:'1.0-0' }} ALL
+        </div>
+        <button class="btn-remove" (click)="removeFromCart(i)">✕</button>
+      </div>
+    </div>
+
+    <!-- Order Note -->
+    <div class="order-note" *ngIf="cart.length > 0">
+      <textarea 
+        [(ngModel)]="orderNote" 
+        placeholder="Order notes..."
+        rows="2"
+      ></textarea>
+    </div>
+
+    <!-- Cart Summary -->
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>Subtotal ({{ totalItems }} items)</span>
+        <span>{{ subtotal | number:'1.0-0' }} ALL</span>
+      </div>
+      <div class="summary-row" *ngIf="taxAmount > 0">
+        <span>Tax</span>
+        <span>{{ taxAmount | number:'1.0-0' }} ALL</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>{{ total | number:'1.0-0' }} ALL</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="cart-actions">
+      <button 
+        class="btn-pay"
+        [disabled]="cart.length === 0"
+        (click)="openPaymentModal()"
+      >
+        💳 Pay {{ total | number:'1.0-0' }} ALL
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div *ngIf="showPaymentModal" class="modal-overlay" (click)="closePaymentModal()">
+  <div class="modal payment-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>💳 Payment</h2>
+      <button class="btn-close" (click)="closePaymentModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="payment-total">
+        <span>Total Amount</span>
+        <strong>{{ total | number:'1.0-0' }} ALL</strong>
+      </div>
+
+      <div class="payment-methods">
+        <button 
+          class="method-btn"
+          [class.active]="paymentMethod === 'cash'"
+          (click)="paymentMethod = 'cash'"
+        >
+          💵 Cash
+        </button>
+        <button 
+          class="method-btn"
+          [class.active]="paymentMethod === 'card'"
+          (click)="paymentMethod = 'card'"
+        >
+          💳 Card
+        </button>
+        <button 
+          class="method-btn"
+          [class.active]="paymentMethod === 'transfer'"
+          (click)="paymentMethod = 'transfer'"
+        >
+          📱 Transfer
+        </button>
+      </div>
+
+      <div class="cash-input" *ngIf="paymentMethod === 'cash'">
+        <label>Amount Received</label>
+        <input 
+          type="number" 
+          [(ngModel)]="amountReceived"
+          class="amount-input"
+        />
+        <div class="quick-amounts">
+          <button (click)="amountReceived = total">Exact</button>
+          <button (click)="amountReceived = Math.ceil(total / 100) * 100">{{ Math.ceil(total / 100) * 100 }}</button>
+          <button (click)="amountReceived = Math.ceil(total / 500) * 500">{{ Math.ceil(total / 500) * 500 }}</button>
+          <button (click)="amountReceived = Math.ceil(total / 1000) * 1000">{{ Math.ceil(total / 1000) * 1000 }}</button>
+        </div>
+        <div class="change-display" *ngIf="amountReceived >= total">
+          <span>Change</span>
+          <strong>{{ change | number:'1.0-0' }} ALL</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closePaymentModal()">Cancel</button>
+      <button 
+        class="btn-confirm"
+        [disabled]="paymentMethod === 'cash' && amountReceived < total"
+        (click)="processPayment()"
+      >
+        ✓ Complete Payment
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div *ngIf="showReceiptModal" class="modal-overlay">
+  <div class="modal receipt-modal">
+    <div class="receipt" id="receipt">
+      <div class="receipt-header">
+        <h1>⚡ QuickCash</h1>
+        <p>Tax Receipt</p>
+      </div>
+
+      <div class="receipt-info">
+        <p><strong>Order:</strong> {{ lastOrder?.orderNumber }}</p>
+        <p><strong>Date:</strong> {{ lastOrder?.date | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p *ngIf="lastOrder?.tableNumber"><strong>Table:</strong> {{ lastOrder?.tableNumber }}</p>
+        <p *ngIf="lastOrder?.customerName"><strong>Customer:</strong> {{ lastOrder?.customerName }}</p>
+      </div>
+
+      <div class="receipt-items">
+        <div class="receipt-item" *ngFor="let item of lastOrder?.items">
+          <span class="item-name">{{ item.product.product_name }}</span>
+          <span class="item-qty">x{{ item.quantity }}</span>
+          <span class="item-price">{{ item.product.selling_price * item.quantity | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <div class="receipt-totals">
+        <div class="receipt-row">
+          <span>Subtotal</span>
+          <span>{{ lastOrder?.subtotal | number:'1.0-0' }} ALL</span>
+        </div>
+        <div class="receipt-row" *ngIf="lastOrder?.tax > 0">
+          <span>Tax</span>
+          <span>{{ lastOrder?.tax | number:'1.0-0' }} ALL</span>
+        </div>
+        <div class="receipt-row total">
+          <span>TOTAL</span>
+          <span>{{ lastOrder?.total | number:'1.0-0' }} ALL</span>
+        </div>
+        <div class="receipt-row">
+          <span>{{ lastOrder?.paymentMethod | titlecase }}</span>
+          <span>{{ lastOrder?.amountReceived | number:'1.0-0' }} ALL</span>
+        </div>
+        <div class="receipt-row" *ngIf="lastOrder?.change > 0">
+          <span>Change</span>
+          <span>{{ lastOrder?.change | number:'1.0-0' }} ALL</span>
+        </div>
+      </div>
+
+      <div class="receipt-footer">
+        <p>Thank you for your purchase!</p>
+        <p class="small">Powered by QuickCash POS</p>
+      </div>
+    </div>
+
+    <div class="receipt-actions">
+      <button class="btn-print" (click)="printReceipt()">🖨️ Print</button>
+      <button class="btn-done" (click)="closeReceipt()">✓ New Order</button>
+    </div>
+  </div>
+</div>

@@ -1,11 +1,12 @@
 /**
  * Product category enum
  */
-export enum ProductCategory {
-  FOOD = 'food',
-  BEVERAGE = 'beverage',
-  DESSERT = 'dessert',
-  OTHER = 'other'
+export interface Category {
+  category_id: number;
+  category_name: string;
+  description?: string;
+  icon?: string;
+  is_active: boolean;
 }
 
 /**
@@ -15,12 +16,15 @@ export interface Product {
   product_id: string;
   product_name: string;
   description: string;
-  category: ProductCategory;
+  category_id: number|null;
+  category_name: string;
   selling_price: number;
+  tax_rate?: number;
   cost_price: number;
   current_quantity: number;
   image_url?: string;
   is_available: boolean;
+  is_featured: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -31,12 +35,13 @@ export interface Product {
 export interface ProductFormData {
   product_name: string;
   description: string;
-  category: ProductCategory;
+  category_id?: number;
   selling_price: number;
   cost_price: number;
   current_quantity: number;
   image_url?: string;
   is_available?: boolean;
+  
 }
 
 /**

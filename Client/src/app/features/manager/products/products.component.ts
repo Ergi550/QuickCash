@@ -2,21 +2,18 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ProductService } from '../../../core/services/product.service';
-import { Product, ProductCategory } from '../../../core/models/product.model';
+import { Product, Category, ProductFormData } from '../../../core/models/product.model';
 
-/**
- * Products Component
- * Full CRUD management for products
- */
 @Component({
   selector: 'app-products',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './products.component.html',
-  styleUrls: [`./products.component.css`]
+  styleUrls: ['./products.component.css']
 })
 export class ProductsComponent implements OnInit {
   products: Product[] = [];
+  categories: Category[] = [];
   productForm: FormGroup;
   showModal = false;
   editingProduct: Product | null = null;
@@ -26,18 +23,30 @@ export class ProductsComponent implements OnInit {
     private productService: ProductService
   ) {
     this.productForm = this.fb.group({
-      name: ['', Validators.required],
-      description: ['', Validators.required],
-      category: ['food', Validators.required],
-      price: [0, [Validators.required, Validators.min(0)]],
-      cost: [0, [Validators.required, Validators.min(0)]],
-      stock: [0, [Validators.required, Validators.min(0)]],
-      isAvailable: [true]
+      product_name: ['', Validators.required],
+      description: [''],
+      category_id: [null],
+      selling_price: [0, [Validators.required, Validators.min(0)]],
+      cost_price: [0, [Validators.required, Validators.min(0)]],
+      initial_quantity: [0, [Validators.required, Validators.min(0)]],
+      is_available: [true]
     });
   }
 
   ngOnInit(): void {
+    this.loadCategories();
     this.loadProducts();
+  }
+
+  loadCategories(): void {
+    this.productService.getAllCategories().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.categories = response.data;
+        }
+      },
+      error: (err) => console.error('Error loading categories:', err)
+    });
   }
 
   loadProducts(): void {
@@ -46,19 +55,34 @@ export class ProductsComponent implements OnInit {
         if (response.success && response.data) {
           this.products = response.data;
         }
-      }
+      },
+      error: (err) => console.error('Error loading products:', err)
     });
   }
 
   openAddModal(): void {
     this.editingProduct = null;
-    this.productForm.reset({ category: 'food', isAvailable: true });
+    this.productForm.reset({ 
+      category_id: null, 
+      is_available: true,
+      selling_price: 0,
+      cost_price: 0,
+      initial_quantity: 0
+    });
     this.showModal = true;
   }
 
   editProduct(product: Product): void {
     this.editingProduct = product;
-    this.productForm.patchValue(product);
+    this.productForm.patchValue({
+      product_name: product.product_name,
+      description: product.description,
+      category_id: product.category_id,
+      selling_price: product.selling_price,
+      cost_price: product.cost_price,
+      initial_quantity: product.current_quantity,
+      is_available: product.is_available
+    });
     this.showModal = true;
   }
 
@@ -71,7 +95,17 @@ export class ProductsComponent implements OnInit {
   saveProduct(): void {
     if (this.productForm.invalid) return;
 
-    const productData = this.productForm.value;
+    const formValue = this.productForm.value;
+    
+    const productData: ProductFormData = {
+      product_name: formValue.product_name,
+      description: formValue.description,
+      category_id: formValue.category_id ? Number(formValue.category_id) : undefined,
+      selling_price: Number(formValue.selling_price),
+      cost_price: Number(formValue.cost_price),
+      current_quantity: Number(formValue.initial_quantity),
+      is_available: formValue.is_available
+    };
 
     if (this.editingProduct) {
       this.productService.updateProduct(this.editingProduct.product_id, productData).subscribe({
@@ -98,9 +132,7 @@ export class ProductsComponent implements OnInit {
     this.productService.updateProduct(product.product_id, {
       is_available: !product.is_available
     }).subscribe({
-      next: () => {
-        this.loadProducts();
-      }
+      next: () => this.loadProducts()
     });
   }
 

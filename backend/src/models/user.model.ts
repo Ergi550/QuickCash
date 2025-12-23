@@ -4,9 +4,8 @@
 export enum UserRole {
   ADMIN = 'admin',
   MANAGER = 'manager',
-  CASHIER = 'cashier',
-  WAITER = 'waiter',
-  KITCHEN = 'kitchen',
+  COSTUMER = 'customer',
+  WAITER = 'staff',
 }
 
 /**

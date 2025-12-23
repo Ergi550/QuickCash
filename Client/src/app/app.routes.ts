@@ -73,6 +73,11 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
+        path:'pos',
+        loadComponent:()=> import('./features/staff/pos/pos.component')
+          .then(m=>m.PosComponent)
+      },
+      {
         path: 'orders',
         loadComponent: () => import('./features/staff/orders/orders.component')
           .then(m => m.OrdersComponent)

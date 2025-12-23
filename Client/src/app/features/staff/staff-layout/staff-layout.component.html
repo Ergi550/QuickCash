@@ -1,36 +1,39 @@
 <div class="staff-layout">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="logo">
-          <h1>⚡ QuickCash</h1>
-          <p class="role-badge">Staff</p>
-        </div>
-
-        <nav class="nav">
-          <a routerLink="/staff/orders" routerLinkActive="active">
-            📋 Orders
-          </a>
-          <a routerLink="/staff/payment" routerLinkActive="active">
-            💳 Payment
-          </a>
-        </nav>
-
-        <div class="user-section">
-          <div class="user-info" *ngIf="currentUser">
-            <div class="avatar">{{ currentUser.full_name.charAt(0) }}</div>
-            <div class="user-details">
-              <strong>{{ currentUser.full_name }}</strong>
-              <small>{{ currentUser.email }}</small>
-            </div>
-          </div>
-          <button class="btn-logout" (click)="logout()">
-            Logout
-          </button>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="main-content">
-        <router-outlet></router-outlet>
-      </main>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>⚡ QuickCash</h1>
+      <p class="role-badge">Staff</p>
     </div>
+
+    <nav class="nav">
+      <a routerLink="/staff/pos" routerLinkActive="active">
+        🖥️ POS
+      </a>
+      <a routerLink="/staff/orders" routerLinkActive="active">
+        📋 Orders
+      </a>
+      <a routerLink="/staff/payment" routerLinkActive="active">
+        💳 Payments
+      </a>
+    </nav>
+
+    <div class="user-section">
+      <div class="user-info" *ngIf="currentUser">
+        <div class="avatar">{{ currentUser.full_name.charAt(0) }}</div>
+        <div class="user-details">
+          <strong>{{ currentUser.full_name }}</strong>
+          <small>{{ currentUser.email }}</small>
+        </div>
+      </div>
+      <button class="btn-logout" (click)="logout()">
+        🚪 Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

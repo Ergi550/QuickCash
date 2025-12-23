@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment.development';
 import { 
   Product, 
   ProductFormData, 
-  ProductCategory,
+  Category,
   InventoryUpdate,
   ApiResponse 
 } from '../models/product.model';
@@ -19,6 +19,7 @@ import {
 })
 export class ProductService {
   private readonly API_URL = `${environment.apiUrl}/products`;
+  private readonly CATEGORY_URL = `${environment.apiUrl}/categories`;
 
   constructor(private http: HttpClient) {}
 
@@ -27,7 +28,7 @@ export class ProductService {
    */
   getAllProducts(filters?: { 
     available?: boolean, 
-    category?: ProductCategory 
+    category_id?:number,
   }): Observable<ApiResponse<Product[]>> {
     let params = new HttpParams();
     
@@ -35,20 +36,28 @@ export class ProductService {
       params = params.set('available', filters.available.toString());
     }
     
-    if (filters?.category) {
-      params = params.set('category', filters.category);
+    if (filters?.category_id) {
+      params = params.set('category', filters.category_id.toString());
     }
 
     return this.http.get<ApiResponse<Product[]>>(this.API_URL, { params });
   }
-
+   /**
+   * Get all categories
+   */
+  getAllCategories(activeOnly: boolean = true): Observable<ApiResponse<Category[]>> {
+    const params = new HttpParams().set('active', activeOnly.toString());
+    return this.http.get<ApiResponse<Category[]>>(this.CATEGORY_URL, { params });
+  }
   /**
    * Get product by ID
    */
   getProductById(productId: string): Observable<ApiResponse<Product>> {
     return this.http.get<ApiResponse<Product>>(`${this.API_URL}/${productId}`);
   }
-
+  getProductsByCategory(categoryId:number): Observable<ApiResponse<Product[]>> {
+    return this.http.get<ApiResponse<Product[]>>(`${this.API_URL}/category/${categoryId}`);
+  }
   /**
    * Create new product (Manager only)
    */

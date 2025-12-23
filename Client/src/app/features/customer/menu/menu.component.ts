@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
-import { Product, ProductCategory } from '../../../core/models/product.model';
+import { Product, Category } from '../../../core/models/product.model';
 
 /**
  * Menu Component
@@ -16,11 +16,11 @@ import { Product, ProductCategory } from '../../../core/models/product.model';
   styleUrls: ['./menu.component.css']
 })
 export class MenuComponent implements OnInit {
-  ProductCategory = ProductCategory;
 
   products: Product[] = [];
   filteredProducts: Product[] = [];
-  selectedCategory: ProductCategory | null = null;
+  categories: Category[] = [];
+  selectedCategoryId: number | null = null;
   isLoading = false;
   errorMessage = '';
 
@@ -30,7 +30,21 @@ export class MenuComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadCategories();
     this.loadProducts();
+  }
+
+  loadCategories(): void {
+    this.productService.getAllCategories(true).subscribe({
+      next: (response)=>{
+        if(response.success && response.data){
+          this.categories = response.data;
+        }
+      },
+      error:(error)=>{
+        console.error('Error loading categories:', error);
+      }
+    });
   }
 
   loadProducts(): void {
@@ -53,13 +67,13 @@ export class MenuComponent implements OnInit {
     });
   }
 
-  filterByCategory(category: ProductCategory | null): void {
-    this.selectedCategory = category;
-    
-    if (category === null) {
+  filterByCategory(categoryId: number | null): void {
+    this.selectedCategoryId = categoryId;
+
+    if (categoryId === null) {
       this.filteredProducts = this.products;
     } else {
-      this.filteredProducts = this.products.filter(p => p.category === category);
+      this.filteredProducts = this.products.filter(p => p.category_id === categoryId);
     }
   }
 
@@ -87,4 +101,6 @@ export class MenuComponent implements OnInit {
   onImageError(event: any): void {
     event.target.src = 'assets/placeholder.png';
   }
+  
+
 }

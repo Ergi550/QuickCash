@@ -71,7 +71,7 @@ class AuthService {
    * Register new user
    */
   async register(userData: RegisterDTO): Promise<AuthResponse> {
-    const { email, password, full_name, phone, role } = userData;
+    const { email, password, full_name, phone } = userData;
 
     // Validate required fields
     if (!email || !password || !full_name) {
@@ -91,12 +91,15 @@ class AuthService {
     // Hash password
     const password_hash = await hashPassword(password);
 
+    // Default role for new registrations
+    const role = 'customer';
+
     // Create new user
     const result = await query(
       `INSERT INTO users (email, password_hash, role, full_name, phone, is_active, is_verified, two_factor_enabled)
        VALUES ($1, $2, $3, $4, $5, true, false, false)
        RETURNING *`,
-      [email, password_hash, role || 'cashier', full_name, phone || null]
+      [email, password_hash, role, full_name, phone || null]
     );
 
     const newUser = result.rows[0] as User;
