@@ -34,7 +34,7 @@ QuickCash është një sistem modern POS (Point of Sale) i projektuar për menax
 
 ```
 quickcash/
-├── server/                          ✅ 100%
+├── server/                          
 │   ├── src/
 │   │   ├── config/
 │   │   ├── controllers/ (4)
@@ -47,7 +47,7 @@ quickcash/
 │   │   └── app.ts
 │   └── [docs]
 │
-├── client/                          ✅ 100%
+├── client/                          
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/
