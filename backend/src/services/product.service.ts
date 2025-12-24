@@ -135,8 +135,19 @@ class ProductService {
          VALUES ($1, $2, $3)`,
         [product.product_id, productData.initial_quantity || 0, 10]
       );
+      const finalResult = await client.query(
+      `SELECT p.*, 
+              c.category_name,
+              COALESCE(i.current_quantity, 0) as current_quantity
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.category_id
+       LEFT JOIN inventory i ON p.product_id = i.product_id
+       WHERE p.product_id = $1`,
+      [product.product_id]
+    );
 
-      return this.getProductById(product.product_id);
+    return finalResult.rows[0];
+
     });
   }
 

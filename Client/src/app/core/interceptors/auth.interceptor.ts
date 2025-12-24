@@ -1,3 +1,4 @@
+
 import { Injectable } from '@angular/core';
 import { 
   HttpInterceptor, 
@@ -11,22 +12,30 @@ import { catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 
+
 /**
  * Auth Interceptor
  * Automatically adds JWT token to outgoing requests
  * Handles 401 errors (redirects to login)
  */
+
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
+  
   
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
+  
+  
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Get token from auth service
-    const token = this.authService.getToken();
+    
+  console.log('🔥 Interceptor running for:', request.url);
+  
+  const token = this.authService.getToken();
+  console.log('🔑 Token:', token);
     
     // Clone request and add Authorization header if token exists
     if (token) {

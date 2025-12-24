@@ -134,12 +134,13 @@ class OrderService {
       const totalAmount = subtotal + totalTax - discountAmount;
 
       // Generate order number
-      const orderNumberResult = await client.query(
-        `SELECT 'ORD-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-' || 
-                LPAD(COALESCE(MAX(CAST(SUBSTRING(order_number FROM '[0-9]+$') AS INT)), 0) + 1::text, 4, '0') as order_number
-         FROM orders 
-         WHERE order_number LIKE 'ORD-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-%'`
-      );
+     // Generate order number
+const orderNumberResult = await client.query(
+  `SELECT 'ORD-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-' || 
+          LPAD((COALESCE(MAX(CAST(SUBSTRING(order_number FROM '[0-9]+$') AS INT)), 0) + 1)::text, 4, '0') as order_number
+   FROM orders 
+   WHERE order_number LIKE 'ORD-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-%'`
+);
       const orderNumber = orderNumberResult.rows[0].order_number;
 
       // Create order
