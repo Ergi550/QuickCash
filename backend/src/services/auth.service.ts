@@ -68,7 +68,7 @@ class AuthService {
   }
 
   /**
-   * Register new user
+   * Register new customer
    */
   async register(userData: RegisterDTO): Promise<AuthResponse> {
     const { email, password, full_name, phone } = userData;
@@ -90,16 +90,17 @@ class AuthService {
 
     // Hash password
     const password_hash = await hashPassword(password);
+    const customerCode = `CUST-${Date.now()}`;
 
     // Default role for new registrations
-    const role = 'customer';
+    // const role = 'customer';
 
     // Create new user
     const result = await query(
-      `INSERT INTO users (email, password_hash, role, full_name, phone, is_active, is_verified, two_factor_enabled)
-       VALUES ($1, $2, $3, $4, $5, true, false, false)
+      `INSERT INTO customers (customer_code,email, password_hash, full_name, phone )
+       VALUES ($1, $2, $3, $4,$5)
        RETURNING *`,
-      [email, password_hash, role, full_name, phone || null]
+      [customerCode, email, password_hash, full_name, phone || null]
     );
 
     const newUser = result.rows[0] as User;

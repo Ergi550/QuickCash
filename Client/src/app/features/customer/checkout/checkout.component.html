@@ -16,11 +16,11 @@
                   <input 
                     type="text" 
                     id="customerName"
-                    formControlName="customer_name"
+                    formControlName="full_name"
                     placeholder="Enter your name"
                   />
                   <span class="error-message" 
-                    *ngIf="checkoutForm.get('customer_name')?.invalid && checkoutForm.get('customer_name')?.touched">
+                    *ngIf="checkoutForm.get('full_name')?.invalid && checkoutForm.get('full_name')?.touched">
                     Name is required
                   </span>
                 </div>

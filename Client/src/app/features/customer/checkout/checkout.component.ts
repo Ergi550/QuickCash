@@ -71,7 +71,7 @@ export class CheckoutComponent implements OnInit {
 
     const orderData = {
       customer_id: this.authService.currentUserValue?.user_id,
-      customer_name: this.checkoutForm.value.customer_name,
+      full_name: this.checkoutForm.value.full_name,
       table_number: this.checkoutForm.value.table_number || undefined,
       notes: this.checkoutForm.value.notes || undefined,
       items: this.cartItems.map(item => ({

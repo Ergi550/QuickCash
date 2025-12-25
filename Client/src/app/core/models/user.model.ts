@@ -11,6 +11,7 @@ export enum UserRole {
  * User interface
  */
 export interface User {
+  customer_id?: string;
   user_id: string;
   //username: string;
   email: string;

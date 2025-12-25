@@ -36,11 +36,17 @@ export class MyOrdersComponent implements OnInit {
       this.errorMessage = 'Please login to view your orders';
       return;
     }
+    const customerId = currentUser.customer_id || currentUser.user_id;
+  
+  if (!customerId) {
+    this.errorMessage = 'Customer ID not found. Please login again.';
+    return;
+  }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.orderService.getCustomerOrders(currentUser.user_id).subscribe({
+    this.orderService.getCustomerOrders(customerId).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.orders = response.data.sort((a, b) => 

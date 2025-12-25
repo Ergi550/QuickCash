@@ -32,23 +32,25 @@
       </button>
     </div>
 
-    <!-- Products Grid -->
-    <div class="products-grid" *ngIf="!isLoading">
-      <div 
-        *ngFor="let product of filteredProducts" 
-        class="product-card"
-        [class.disabled]="!product.is_available"
-        (click)="product.is_available && addToCart(product)"
-      >
-        <div class="product-image">
-          <span class="product-emoji">{{ getProductEmoji(product.category_name) }}</span>
-          <span class="stock-badge" *ngIf="product.current_quantity < 10">
-            {{ product.current_quantity }} left
-          </span>
-        </div>
-        <div class="product-info">
-          <h4>{{ product.product_name }}</h4>
-          <p class="product-price">{{ product.selling_price | number:'1.0-0' }} ALL</p>
+    <!-- Products Grid - Scrollable -->
+    <div class="products-grid-container" *ngIf="!isLoading">
+      <div class="products-grid">
+        <div 
+          *ngFor="let product of filteredProducts" 
+          class="product-card"
+          [class.disabled]="!product.is_available"
+          (click)="product.is_available && addToCart(product)"
+        >
+          <div class="product-image">
+            <span class="product-emoji">{{ getProductEmoji(product.category_name) }}</span>
+            <span class="stock-badge" *ngIf="product.current_quantity < 10">
+              {{ product.current_quantity }} left
+            </span>
+          </div>
+          <div class="product-info">
+            <h4>{{ product.product_name }}</h4>
+            <p class="product-price">{{ product.selling_price | number:'1.0-0' }} ALL</p>
+          </div>
         </div>
       </div>
     </div>
@@ -177,7 +179,7 @@
         <button 
           class="method-btn"
           [class.active]="paymentMethod === 'cash'"
-          (click)="paymentMethod = 'cash'"
+          (click)="paymentMethod = 'cash'; amountReceived = 0"
         >
           💵 Cash
         </button>
@@ -197,22 +199,59 @@
         </button>
       </div>
 
-      <div class="cash-input" *ngIf="paymentMethod === 'cash'">
-        <label>Amount Received</label>
-        <input 
-          type="number" 
-          [(ngModel)]="amountReceived"
-          class="amount-input"
-        />
+      <!-- Cash Payment Section -->
+      <div class="cash-section" *ngIf="paymentMethod === 'cash'">
+        <div class="cash-input">
+          <label>Amount Received</label>
+          <input 
+            type="number" 
+            [(ngModel)]="amountReceived"
+            class="amount-input"
+            placeholder="0"
+          />
+        </div>
+        
         <div class="quick-amounts">
           <button (click)="amountReceived = total">Exact</button>
-          <button (click)="amountReceived = Math.ceil(total / 100) * 100">{{ Math.ceil(total / 100) * 100 }}</button>
-          <button (click)="amountReceived = Math.ceil(total / 500) * 500">{{ Math.ceil(total / 500) * 500 }}</button>
-          <button (click)="amountReceived = Math.ceil(total / 1000) * 1000">{{ Math.ceil(total / 1000) * 1000 }}</button>
+          <button (click)="amountReceived = Math.ceil(total / 100) * 100">
+            {{ Math.ceil(total / 100) * 100 | number:'1.0-0' }}
+          </button>
+          <button (click)="amountReceived = Math.ceil(total / 500) * 500">
+            {{ Math.ceil(total / 500) * 500 | number:'1.0-0' }}
+          </button>
+          <button (click)="amountReceived = Math.ceil(total / 1000) * 1000">
+            {{ Math.ceil(total / 1000) * 1000 | number:'1.0-0' }}
+          </button>
+          <button (click)="amountReceived = Math.ceil(total / 2000) * 2000">
+            {{ Math.ceil(total / 2000) * 2000 | number:'1.0-0' }}
+          </button>
+          <button (click)="amountReceived = Math.ceil(total / 5000) * 5000">
+            {{ Math.ceil(total / 5000) * 5000 | number:'1.0-0' }}
+          </button>
         </div>
+
         <div class="change-display" *ngIf="amountReceived >= total">
-          <span>Change</span>
-          <strong>{{ change | number:'1.0-0' }} ALL</strong>
+          <div class="change-row">
+            <span>Amount Received</span>
+            <span>{{ amountReceived | number:'1.0-0' }} ALL</span>
+          </div>
+          <div class="change-row highlight">
+            <span>Change to Return</span>
+            <strong>{{ change | number:'1.0-0' }} ALL</strong>
+          </div>
+        </div>
+
+        <div class="insufficient-funds" *ngIf="amountReceived > 0 && amountReceived < total">
+          <span>⚠️ Insufficient amount. Need {{ total - amountReceived | number:'1.0-0' }} ALL more.</span>
+        </div>
+      </div>
+
+      <!-- Card/Transfer Section -->
+      <div class="card-section" *ngIf="paymentMethod === 'card' || paymentMethod === 'transfer'">
+        <div class="payment-ready">
+          <div class="ready-icon">{{ paymentMethod === 'card' ? '💳' : '📱' }}</div>
+          <p>Ready to process {{ paymentMethod === 'card' ? 'card' : 'bank transfer' }} payment</p>
+          <strong>{{ total | number:'1.0-0' }} ALL</strong>
         </div>
       </div>
     </div>
@@ -230,7 +269,7 @@
   </div>
 </div>
 
-<!-- Receipt Modal -->
+<!-- Receipt Modal (same for all payment methods) -->
 <div *ngIf="showReceiptModal" class="modal-overlay">
   <div class="modal receipt-modal">
     <div class="receipt" id="receipt">
@@ -284,8 +323,8 @@
     </div>
 
     <div class="receipt-actions">
-      <button class="btn-print" (click)="printReceipt()">🖨️ Print</button>
-      <button class="btn-done" (click)="closeReceipt()">✓ New Order</button>
+      <button class="btn-print" (click)="printReceipt()">🖨️ Print Receipt</button>
+      <button class="btn-new-order" (click)="closeReceipt()">➕ New Order</button>
     </div>
   </div>
 </div>

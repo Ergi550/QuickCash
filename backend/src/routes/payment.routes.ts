@@ -78,7 +78,7 @@ router.get('/:id', authenticate, paymentController.getPaymentById);
 router.post(
   '/process',
   authenticate,
-  authorize('admin', 'manager', 'staff'),
+  authorize('admin', 'manager', 'staff','customer'),
   paymentController.processPayment
 );
 

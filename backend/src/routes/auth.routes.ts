@@ -54,12 +54,12 @@ router.get(
 /**
  * @route   DELETE /api/v1/auth/users/:id
  * @desc    Delete user
- * @access  Private (Admin)
+ * @access  Private (Admin,Manager)
  */
 router.delete(
   '/users/:id',
   authenticate,
-  authorize('admin'),
+  authorize('admin','manager'),
   authController.deleteUser
 );
 

@@ -17,6 +17,7 @@ interface CartItem {
   styleUrls: ['./pos.component.css']
 })
 export class PosComponent implements OnInit {
+  Math = Math;
   products: Product[] = [];
   filteredProducts: Product[] = [];
   categories: Category[] = [];
@@ -39,7 +40,7 @@ export class PosComponent implements OnInit {
   showPaymentModal = false;
   showReceiptModal = false;
   lastOrder: any = null;
-Math: any;
+
 
   constructor(private productService: ProductService) {}
 
@@ -169,6 +170,8 @@ Math: any;
   get totalItems(): number {
     return this.cart.reduce((sum, item) => sum + item.quantity, 0);
   }
+
+  
 
   // Payment
   openPaymentModal(): void {
