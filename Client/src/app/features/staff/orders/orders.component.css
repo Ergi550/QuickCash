@@ -183,6 +183,12 @@
       color: #3498db;
     }
 
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
     .payment-status {
       font-size: 0.75rem;
       font-weight: 600;
@@ -201,6 +207,23 @@
       color: #155724;
     }
 
+    .btn-pay-order {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.3s;
+    }
+
+    .btn-pay-order:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
     .empty-state {
       grid-column: 1 / -1;
       text-align: center;
@@ -216,4 +239,297 @@
       .orders-grid {
         grid-template-columns: 1fr;
       }
+    }
+
+    /* Payment Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      max-width: 90%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalSlide 0.3s ease;
+    }
+
+    @keyframes modalSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .payment-modal {
+      width: 420px;
+      max-height: 90vh;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .modal-header h2 {
+      margin: 0 0 5px 0;
+    }
+
+    .order-number {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #666;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.2s;
+    }
+
+    .btn-close:hover {
+      color: #333;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+      max-height: calc(90vh - 140px);
+    }
+
+    .payment-total {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .payment-total span {
+      display: block;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .payment-total strong {
+      font-size: 32px;
+      color: #333;
+    }
+
+    .payment-methods {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .method-btn {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      background: white;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .method-btn:hover {
+      border-color: #667eea;
+    }
+
+    .method-btn.active {
+      border-color: #667eea;
+      background: #f0f3ff;
+    }
+
+    .cash-section {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .cash-input {
+      margin-bottom: 15px;
+    }
+
+    .cash-input label {
+      display: block;
+      margin-bottom: 8px;
+      color: #666;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .amount-input {
+      width: 100%;
+      padding: 15px;
+      font-size: 24px;
+      text-align: center;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      transition: border-color 0.2s;
+    }
+
+    .amount-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .quick-amounts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .quick-amounts button {
+      padding: 10px;
+      border: 1px solid #ddd;
+      background: #f5f5f5;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .quick-amounts button:hover {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .change-display {
+      background: #e8f5e9;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .change-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+    }
+
+    .change-row.highlight {
+      border-top: 1px dashed #4caf50;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .change-row.highlight strong {
+      color: #2e7d32;
+      font-size: 24px;
+    }
+
+    .insufficient-funds {
+      background: #fff3e0;
+      color: #e65100;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+
+    .card-section {
+      animation: fadeIn 0.3s ease;
+    }
+
+    .payment-ready {
+      text-align: center;
+      padding: 30px 20px;
+      background: #f5f7fa;
+      border-radius: 10px;
+    }
+
+    .ready-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .payment-ready p {
+      color: #666;
+      margin: 0 0 10px 0;
+    }
+
+    .payment-ready strong {
+      font-size: 28px;
+      color: #333;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      padding: 20px;
+      border-top: 1px solid #eee;
+      background: white;
+      flex-shrink: 0;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 15px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-cancel:hover:not(:disabled) {
+      background: #f5f5f5;
+    }
+
+    .btn-cancel:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-confirm {
+      flex: 2;
+      padding: 15px;
+      border: none;
+      background: #4caf50;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn-confirm:hover:not(:disabled) {
+      background: #43a047;
+    }
+
+    .btn-confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }

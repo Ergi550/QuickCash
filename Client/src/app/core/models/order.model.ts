@@ -39,6 +39,8 @@ export interface OrderItem {
   unit_price: number;
   subtotal: number;
   notes?: string;
+  tax_amount?: number;
+  total_amount?: number;
 }
 
 /**
@@ -52,16 +54,19 @@ export interface Order {
   items: OrderItem[];
   subtotal: number;
   tax_amount: number;
-  discount: number;
-  total: number;
-  status: OrderStatus;
-  payment_status: PaymentStatus;
+  discount_amount?: number;
+  discount?: number; // Alias for discount_amount
+  total_amount?: number;
+  total: number; // Alias for total_amount
+  status: OrderStatus | string;
+  payment_status: PaymentStatus | string;
   payment_method?: PaymentMethod;
   table_number?: number;
   notes?: string;
   staff_id?: string;
   created_at: Date;
   updated_at: Date;
+  staff_name?: string;
 }
 
 /**

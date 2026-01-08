@@ -150,12 +150,19 @@
 
     <!-- Action Buttons -->
     <div class="cart-actions">
-      <button 
+      <button
+        class="btn-place-order"
+        [disabled]="cart.length === 0"
+        (click)="placeOrder()"
+      >
+        📝 Place Order
+      </button>
+      <button
         class="btn-pay"
         [disabled]="cart.length === 0"
         (click)="openPaymentModal()"
       >
-        💳 Pay {{ total | number:'1.0-0' }} ALL
+        💳 Complete Order {{ total | number:'1.0-0' }} ALL
       </button>
     </div>
   </div>
@@ -176,94 +183,111 @@
       </div>
 
       <div class="payment-methods">
-        <button 
+        <button
           class="method-btn"
           [class.active]="paymentMethod === 'cash'"
-          (click)="paymentMethod = 'cash'; amountReceived = 0"
+          (click)="paymentMethod = 'cash'"
         >
           💵 Cash
         </button>
-        <button 
+        <button
           class="method-btn"
           [class.active]="paymentMethod === 'card'"
-          (click)="paymentMethod = 'card'"
+          (click)="paymentMethod = 'card'; amountReceived = total"
         >
           💳 Card
         </button>
-        <button 
+        <button
           class="method-btn"
           [class.active]="paymentMethod === 'transfer'"
-          (click)="paymentMethod = 'transfer'"
+          (click)="paymentMethod = 'transfer'; amountReceived = total"
         >
           📱 Transfer
         </button>
       </div>
 
       <!-- Cash Payment Section -->
-      <div class="cash-section" *ngIf="paymentMethod === 'cash'">
-        <div class="cash-input">
-          <label>Amount Received</label>
-          <input 
-            type="number" 
-            [(ngModel)]="amountReceived"
-            class="amount-input"
-            placeholder="0"
-          />
-        </div>
-        
-        <div class="quick-amounts">
-          <button (click)="amountReceived = total">Exact</button>
-          <button (click)="amountReceived = Math.ceil(total / 100) * 100">
-            {{ Math.ceil(total / 100) * 100 | number:'1.0-0' }}
-          </button>
-          <button (click)="amountReceived = Math.ceil(total / 500) * 500">
-            {{ Math.ceil(total / 500) * 500 | number:'1.0-0' }}
-          </button>
-          <button (click)="amountReceived = Math.ceil(total / 1000) * 1000">
-            {{ Math.ceil(total / 1000) * 1000 | number:'1.0-0' }}
-          </button>
-          <button (click)="amountReceived = Math.ceil(total / 2000) * 2000">
-            {{ Math.ceil(total / 2000) * 2000 | number:'1.0-0' }}
-          </button>
-          <button (click)="amountReceived = Math.ceil(total / 5000) * 5000">
-            {{ Math.ceil(total / 5000) * 5000 | number:'1.0-0' }}
-          </button>
-        </div>
-
-        <div class="change-display" *ngIf="amountReceived >= total">
-          <div class="change-row">
-            <span>Amount Received</span>
-            <span>{{ amountReceived | number:'1.0-0' }} ALL</span>
+      @if (paymentMethod === 'cash') {
+        <div class="cash-section">
+          <div class="cash-input">
+            <label>
+              Amount Received (Total: {{ total | number:'1.0-0' }} ALL)
+              @if (amountReceived > 0) {
+                <span> - Change: {{ change | number:'1.0-0' }} ALL</span>
+              }
+            </label>
+            <input
+              type="number"
+              [(ngModel)]="amountReceived"
+              class="amount-input"
+              placeholder="Enter amount or click quick buttons below"
+            />
           </div>
-          <div class="change-row highlight">
-            <span>Change to Return</span>
-            <strong>{{ change | number:'1.0-0' }} ALL</strong>
-          </div>
-        </div>
 
-        <div class="insufficient-funds" *ngIf="amountReceived > 0 && amountReceived < total">
-          <span>⚠️ Insufficient amount. Need {{ total - amountReceived | number:'1.0-0' }} ALL more.</span>
+          <div class="quick-amounts">
+            <button type="button" (click)="amountReceived = total">Exact</button>
+            <button type="button" (click)="amountReceived = Math.ceil(total / 100) * 100">
+              {{ Math.ceil(total / 100) * 100 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(total / 500) * 500">
+              {{ Math.ceil(total / 500) * 500 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(total / 1000) * 1000">
+              {{ Math.ceil(total / 1000) * 1000 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(total / 2000) * 2000">
+              {{ Math.ceil(total / 2000) * 2000 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(total / 5000) * 5000">
+              {{ Math.ceil(total / 5000) * 5000 | number:'1.0-0' }}
+            </button>
+          </div>
+
+          @if (amountReceived >= total) {
+            <div class="change-display">
+              <div class="change-row">
+                <span>Amount Received</span>
+                <span>{{ amountReceived | number:'1.0-0' }} ALL</span>
+              </div>
+              <div class="change-row highlight">
+                <span>Change to Return</span>
+                <strong>{{ change | number:'1.0-0' }} ALL</strong>
+              </div>
+            </div>
+          }
+
+          @if (amountReceived > 0 && amountReceived < total) {
+            <div class="insufficient-funds">
+              <span>⚠️ Insufficient amount. Need {{ total - amountReceived | number:'1.0-0' }} ALL more.</span>
+            </div>
+          }
         </div>
-      </div>
+      }
 
       <!-- Card/Transfer Section -->
-      <div class="card-section" *ngIf="paymentMethod === 'card' || paymentMethod === 'transfer'">
-        <div class="payment-ready">
-          <div class="ready-icon">{{ paymentMethod === 'card' ? '💳' : '📱' }}</div>
-          <p>Ready to process {{ paymentMethod === 'card' ? 'card' : 'bank transfer' }} payment</p>
-          <strong>{{ total | number:'1.0-0' }} ALL</strong>
+      @if (paymentMethod === 'card' || paymentMethod === 'transfer') {
+        <div class="card-section">
+          <div class="payment-ready">
+            <div class="ready-icon">{{ paymentMethod === 'card' ? '💳' : '📱' }}</div>
+            <p>Ready to process {{ paymentMethod === 'card' ? 'card' : 'bank transfer' }} payment</p>
+            <strong>{{ total | number:'1.0-0' }} ALL</strong>
+          </div>
         </div>
-      </div>
+      }
     </div>
 
     <div class="modal-footer">
-      <button class="btn-cancel" (click)="closePaymentModal()">Cancel</button>
-      <button 
+      <button class="btn-cancel" (click)="closePaymentModal()" [disabled]="isSavingOrder">Cancel</button>
+      <button
         class="btn-confirm"
-        [disabled]="paymentMethod === 'cash' && amountReceived < total"
+        [disabled]="(paymentMethod === 'cash' && amountReceived < total) || isSavingOrder"
         (click)="processPayment()"
       >
-        ✓ Complete Payment
+        @if (!isSavingOrder) {
+          <span>✓ Complete Payment</span>
+        } @else {
+          <span>⏳ Saving Order...</span>
+        }
       </button>
     </div>
   </div>

@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment.development';
-import { 
-  Order, 
-  CreateOrderRequest, 
+import {
+  Order,
+  CreateOrderRequest,
   OrderStatus,
-  ApiResponse 
+  ApiResponse
 } from '../models/order.model';
 
 /**
@@ -45,7 +46,19 @@ export class OrderService {
    * Get customer's orders
    */
   getCustomerOrders(customerId: string): Observable<ApiResponse<Order[]>> {
-    return this.http.get<ApiResponse<Order[]>>(`${this.API_URL}/customer/${customerId}`);
+    return this.http.get<ApiResponse<Order[]>>(`${this.API_URL}/customer/${customerId}`).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          // Map backend field names to frontend field names
+          response.data = response.data.map(order => ({
+            ...order,
+            total: order.total_amount || order.total || 0,
+            discount: order.discount_amount || order.discount || 0
+          }));
+        }
+        return response;
+      })
+    );
   }
 
   /**
@@ -86,7 +99,7 @@ export class OrderService {
     const params = new HttpParams()
       .set('startDate', startDate)
       .set('endDate', endDate);
-    
+
     return this.http.get<ApiResponse<Order[]>>(`${this.API_URL}/reports/range`, { params });
   }
 }

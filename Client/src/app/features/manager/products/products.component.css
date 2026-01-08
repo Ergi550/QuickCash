@@ -203,3 +203,68 @@
       padding-top: 1rem;
       border-top: 1px solid #dee2e6;
     }
+
+/* Image Upload Styles */
+.image-upload-section {
+  margin-top: 8px;
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+.btn-remove-image {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-remove-image:hover {
+  background: #cc0000;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 30px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.btn-upload {
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-upload:hover {
+  background: #5568d3;
+}
+
+.upload-placeholder small {
+  color: #666;
+  font-size: 12px;
+}
+

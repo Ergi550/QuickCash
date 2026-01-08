@@ -86,6 +86,35 @@
           <textarea formControlName="description" rows="3"></textarea>
         </div>
 
+        <!-- Image Upload -->
+        <div class="form-group">
+          <label>Product Image</label>
+          <div class="image-upload-section">
+            @if (imagePreview) {
+              <div class="image-preview">
+                <img [src]="imagePreview" alt="Preview" />
+                <button type="button" class="btn-remove-image" (click)="removeImage()">
+                  ✕ Remove
+                </button>
+              </div>
+            } @else {
+              <div class="upload-placeholder">
+                <input
+                  type="file"
+                  accept="image/*"
+                  (change)="onImageSelected($event)"
+                  #fileInput
+                  style="display: none"
+                />
+                <button type="button" class="btn-upload" (click)="fileInput.click()">
+                  📷 Choose Image
+                </button>
+                <small>PNG, JPG, or GIF (Max 5MB)</small>
+              </div>
+            }
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Category</label>

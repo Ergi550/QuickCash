@@ -1,0 +1,264 @@
+<div class="invoices-page">
+  <!-- Header -->
+  <header class="page-header">
+    <h1>📄 Invoices & Orders</h1>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadAllOrders()">
+        🔄 Refresh
+      </button>
+      <button class="btn btn-primary" (click)="exportToCSV()" [disabled]="filteredOrders.length === 0">
+        📥 Export CSV
+      </button>
+    </div>
+  </header>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="card-icon">📊</div>
+      <div class="card-content">
+        <p class="card-label">Total Orders</p>
+        <p class="card-value">{{ filteredOrders.length }}</p>
+      </div>
+    </div>
+    <div class="summary-card green">
+      <div class="card-icon">💰</div>
+      <div class="card-content">
+        <p class="card-label">Total Paid</p>
+        <p class="card-value">{{ getTotalPaidAmount() | number:'1.0-0' }} ALL</p>
+      </div>
+    </div>
+    <div class="summary-card orange">
+      <div class="card-icon">⏳</div>
+      <div class="card-content">
+        <p class="card-label">Total Pending</p>
+        <p class="card-value">{{ getTotalPendingAmount() | number:'1.0-0' }} ALL</p>
+      </div>
+    </div>
+    <div class="summary-card blue">
+      <div class="card-icon">📈</div>
+      <div class="card-content">
+        <p class="card-label">Grand Total</p>
+        <p class="card-value">{{ getTotalAmount() | number:'1.0-0' }} ALL</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+        placeholder="🔍 Search by order #, customer, table..."
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Order Status</label>
+        <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="filter-select">
+          <option [ngValue]="null">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="preparing">Preparing</option>
+          <option value="ready">Ready</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Payment Status</label>
+        <select [(ngModel)]="selectedPaymentStatus" (change)="applyFilters()" class="filter-select">
+          <option [ngValue]="null">All Payments</option>
+          <option value="pending">Pending</option>
+          <option value="paid">Paid</option>
+          <option value="failed">Failed</option>
+          <option value="refunded">Refunded</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Start Date</label>
+        <input type="date" [(ngModel)]="startDate" (change)="applyFilters()" class="filter-input" />
+      </div>
+
+      <div class="filter-group">
+        <label>End Date</label>
+        <input type="date" [(ngModel)]="endDate" (change)="applyFilters()" class="filter-input" />
+      </div>
+
+      <button class="btn btn-clear" (click)="clearFilters()">Clear Filters</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading invoices...</p>
+  </div>
+
+  <!-- Orders Table -->
+  <div *ngIf="!isLoading" class="table-container">
+    <table class="invoices-table">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Date & Time</th>
+          <th>Customer</th>
+          <th>Table</th>
+          <th>Items</th>
+          <th>Subtotal</th>
+          <th>Tax</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Payment</th>
+          <th>Staff</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of filteredOrders" (click)="viewOrderDetails(order)" class="clickable-row">
+          <td class="order-number">{{ order.order_number }}</td>
+          <td class="date-cell">{{ order.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ order.customer_name || 'Walk-in' }}</td>
+          <td>{{ order.table_number || '-' }}</td>
+          <td class="items-count">{{ order.items.length || 0 }} items</td>
+          <td class="amount">{{ order.subtotal | number:'1.0-0' }} ALL</td>
+          <td class="amount">{{ order.tax_amount | number:'1.0-0' }} ALL</td>
+          <td class="amount total-amount">{{ order.total | number:'1.0-0' }} ALL</td>
+          <td>
+            <span class="badge" [class]="'badge-' + order.status">
+              {{ order.status }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [class]="'badge-payment-' + order.payment_status">
+              {{ order.payment_status }}
+            </span>
+          </td>
+          <td>{{ order.staff_name || '-' }}</td>
+          <td>
+            <button class="btn-icon" (click)="viewOrderDetails(order); $event.stopPropagation()" title="View Details">
+              👁️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredOrders.length === 0" class="empty-state">
+      <h3>No invoices found</h3>
+      <p>Try adjusting your filters</p>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div *ngIf="showDetailModal && selectedOrder" class="modal-overlay" (click)="closeDetailModal()">
+  <div class="modal invoice-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>📄 Invoice Details</h2>
+        <p class="order-number-modal">{{ selectedOrder.order_number }}</p>
+      </div>
+      <button class="btn-close" (click)="closeDetailModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Order Info -->
+      <div class="invoice-section">
+        <h3>Order Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Date:</span>
+            <span class="info-value">{{ selectedOrder.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Customer:</span>
+            <span class="info-value">{{ selectedOrder.customer_name || 'Walk-in' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Table:</span>
+            <span class="info-value">{{ selectedOrder.table_number || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Staff:</span>
+            <span class="info-value">{{ selectedOrder.staff_name || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Status:</span>
+            <span class="badge" [class]="'badge-' + selectedOrder.status">{{ selectedOrder.status }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Payment:</span>
+            <span class="badge" [class]="'badge-payment-' + selectedOrder.payment_status">
+              {{ selectedOrder.payment_status }}
+            </span>
+          </div>
+        </div>
+        <div *ngIf="selectedOrder.notes" class="notes-section">
+          <span class="info-label">Notes:</span>
+          <p class="notes-text">{{ selectedOrder.notes }}</p>
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      <div class="invoice-section">
+        <h3>Order Items</h3>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Subtotal</th>
+              <th>Tax</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of selectedOrder.items">
+              <td>{{ item.product_name }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-right">{{ item.unit_price | number:'1.0-0' }} ALL</td>
+              <td class="text-right">{{ item.subtotal | number:'1.0-0' }} ALL</td>
+              <td class="text-right">{{ item.tax_amount | number:'1.0-0' }} ALL</td>
+              <td class="text-right">{{ item.total_amount | number:'1.0-0' }} ALL</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div class="invoice-section">
+        <div class="totals-grid">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>{{ selectedOrder.subtotal | number:'1.0-0' }} ALL</span>
+          </div>
+          <div class="total-row" *ngIf="selectedOrder.tax_amount">
+            <span>Tax:</span>
+            <span>{{ selectedOrder.tax_amount | number:'1.0-0' }} ALL</span>
+          </div>
+          <div class="total-row" *ngIf="selectedOrder.discount_amount">
+            <span>Discount:</span>
+            <span class="discount">-{{ selectedOrder.discount_amount | number:'1.0-0' }} ALL</span>
+          </div>
+          <div class="total-row grand-total">
+            <span>Grand Total:</span>
+            <span>{{ selectedOrder.total_amount | number:'1.0-0' }} ALL</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeDetailModal()">Close</button>
+    </div>
+  </div>
+</div>

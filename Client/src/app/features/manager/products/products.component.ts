@@ -17,6 +17,8 @@ export class ProductsComponent implements OnInit {
   productForm: FormGroup;
   showModal = false;
   editingProduct: Product | null = null;
+  selectedImageFile: File | null = null;
+  imagePreview: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -29,7 +31,8 @@ export class ProductsComponent implements OnInit {
       selling_price: [0, [Validators.required, Validators.min(0)]],
       cost_price: [0, [Validators.required, Validators.min(0)]],
       initial_quantity: [0, [Validators.required, Validators.min(0)]],
-      is_available: [true]
+      is_available: [true],
+      image_url: ['']
     });
   }
 
@@ -62,8 +65,10 @@ export class ProductsComponent implements OnInit {
 
   openAddModal(): void {
     this.editingProduct = null;
-    this.productForm.reset({ 
-      category_id: null, 
+    this.selectedImageFile = null;
+    this.imagePreview = null;
+    this.productForm.reset({
+      category_id: null,
       is_available: true,
       selling_price: 0,
       cost_price: 0,
@@ -96,7 +101,7 @@ export class ProductsComponent implements OnInit {
     if (this.productForm.invalid) return;
 
     const formValue = this.productForm.value;
-    
+
     const productData: ProductFormData = {
       product_name: formValue.product_name,
       description: formValue.description,
@@ -104,7 +109,8 @@ export class ProductsComponent implements OnInit {
       selling_price: Number(formValue.selling_price),
       cost_price: Number(formValue.cost_price),
       current_quantity: Number(formValue.initial_quantity),
-      is_available: formValue.is_available
+      is_available: formValue.is_available,
+      image_url: formValue.image_url || undefined
     };
 
     if (this.editingProduct) {
@@ -146,5 +152,29 @@ export class ProductsComponent implements OnInit {
         error: () => alert('Failed to delete product')
       });
     }
+  }
+
+  onImageSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedImageFile = file;
+
+      // Create image preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      // For now, store the image URL as a placeholder
+      // In production, you would upload to a server/cloud storage
+      this.productForm.patchValue({ image_url: file.name });
+    }
+  }
+
+  removeImage(): void {
+    this.selectedImageFile = null;
+    this.imagePreview = null;
+    this.productForm.patchValue({ image_url: '' });
   }
 }

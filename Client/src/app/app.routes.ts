@@ -132,6 +132,11 @@ export const routes: Routes = [
         path: 'users',
         loadComponent: () => import('./features/manager/users/users.component')
           .then(m => m.UsersComponent)
+      },
+      {
+        path: 'invoices',
+        loadComponent: () => import('./features/manager/invoices/invoices.component')
+          .then(m => m.InvoicesComponent)
       }
     ]
   },

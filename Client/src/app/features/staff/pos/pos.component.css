@@ -374,6 +374,32 @@
 /* Cart Actions */
 .cart-actions {
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-place-order {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-place-order:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+}
+
+.btn-place-order:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-pay {
@@ -418,7 +444,9 @@
   background: white;
   border-radius: 16px;
   max-width: 90%;
-  max-height: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   animation: modalSlide 0.3s ease;
 }
@@ -436,6 +464,7 @@
 
 .payment-modal {
   width: 420px;
+  max-height: 90vh;
 }
 
 .modal-header {
@@ -465,6 +494,9 @@
 
 .modal-body {
   padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  max-height: calc(90vh - 140px);
 }
 
 .payment-total {
@@ -637,6 +669,8 @@
   gap: 10px;
   padding: 20px;
   border-top: 1px solid #eee;
+  background: white;
+  flex-shrink: 0;
 }
 
 .btn-cancel {

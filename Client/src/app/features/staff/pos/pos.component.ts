@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../../core/services/product.service';
+import { OrderService } from '../../../core/services/order.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { Product, Category } from '../../../core/models/product.model';
+import { CreateOrderRequest } from '../../../core/models/order.model';
 
 interface CartItem {
   product: Product;
@@ -22,27 +25,32 @@ export class PosComponent implements OnInit {
   filteredProducts: Product[] = [];
   categories: Category[] = [];
   selectedCategoryId: number | null = null;
-  
+
   cart: CartItem[] = [];
   searchTerm: string = '';
-  
+
   // Customer info
   customerName: string = '';
   customerPhone: string = '';
   tableNumber: string = '';
   orderNote: string = '';
-  
+
   // Payment
   paymentMethod: 'cash' | 'card' | 'transfer' = 'cash';
   amountReceived: number = 0;
-  
+
   isLoading = false;
   showPaymentModal = false;
   showReceiptModal = false;
   lastOrder: any = null;
+  isSavingOrder = false;
 
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private orderService: OrderService,
+    private paymentService: PaymentService
+  ) {}
 
   ngOnInit(): void {
     this.loadCategories();
@@ -179,12 +187,70 @@ export class PosComponent implements OnInit {
       alert('Cart is empty!');
       return;
     }
-    this.amountReceived = this.total;
+    // Reset payment method to cash and amount to 0 for new order
+    this.paymentMethod = 'cash';
+    this.amountReceived = 0;
     this.showPaymentModal = true;
   }
 
   closePaymentModal(): void {
     this.showPaymentModal = false;
+  }
+
+  placeOrder(): void {
+    if (this.cart.length === 0) {
+      alert('Cart is empty!');
+      return;
+    }
+
+    if (this.isSavingOrder) {
+      return;
+    }
+
+    // Prepare order data for backend (status will be PENDING)
+    const orderRequest: any = {
+      items: this.cart.map(item => ({
+        product_id: parseInt(item.product.product_id as any),
+        quantity: item.quantity
+      })),
+      table_number: this.tableNumber || undefined,
+      notes: this.orderNote || undefined
+    };
+
+    // Add customer name to notes if provided
+    if (this.customerName && this.orderNote) {
+      orderRequest.notes = `Customer: ${this.customerName}\n${this.orderNote}`;
+    } else if (this.customerName) {
+      orderRequest.notes = `Customer: ${this.customerName}`;
+    }
+
+    this.isSavingOrder = true;
+
+    // Save order to backend with PENDING status
+    this.orderService.createOrder(orderRequest).subscribe({
+      next: (response) => {
+        this.isSavingOrder = false;
+
+        if (response.success && response.data) {
+          alert(`Order #${response.data.order_number} placed successfully! You can pay it later from Orders section.`);
+
+          // Clear cart and form
+          this.cart = [];
+          this.customerName = '';
+          this.customerPhone = '';
+          this.tableNumber = '';
+          this.orderNote = '';
+          this.amountReceived = 0;
+        } else {
+          alert('Failed to place order: ' + (response.message || 'Unknown error'));
+        }
+      },
+      error: (error) => {
+        this.isSavingOrder = false;
+        console.error('Error placing order:', error);
+        alert('Failed to place order: ' + (error.error?.message || error.message || 'Network error'));
+      }
+    });
   }
 
   processPayment(): void {
@@ -193,28 +259,88 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    // Create order object
-    this.lastOrder = {
-      orderNumber: 'ORD-' + Date.now(),
-      date: new Date(),
-      items: [...this.cart],
-      subtotal: this.subtotal,
-      tax: this.taxAmount,
-      total: this.total,
-      paymentMethod: this.paymentMethod,
-      amountReceived: this.amountReceived,
-      change: this.change,
-      customerName: this.customerName,
-      customerPhone: this.customerPhone,
-      tableNumber: this.tableNumber,
-      note: this.orderNote
+    if (this.isSavingOrder) {
+      return;
+    }
+
+    // Prepare order data for backend
+    const orderRequest: any = {
+      items: this.cart.map(item => ({
+        product_id: parseInt(item.product.product_id as any), // Convert string to number
+        quantity: item.quantity
+      })),
+      table_number: this.tableNumber || undefined,
+      notes: this.orderNote || undefined
     };
 
-    // TODO: Send to backend
-    // this.orderService.createOrder(this.lastOrder).subscribe(...)
+    // Add customer name to notes if provided (for walk-in customers)
+    if (this.customerName && this.orderNote) {
+      orderRequest.notes = `Customer: ${this.customerName}\n${this.orderNote}`;
+    } else if (this.customerName) {
+      orderRequest.notes = `Customer: ${this.customerName}`;
+    }
 
-    this.showPaymentModal = false;
-    this.showReceiptModal = true;
+    this.isSavingOrder = true;
+
+    // Save order to backend
+    this.orderService.createOrder(orderRequest).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const orderId = response.data.order_id;
+
+          // Now process the payment
+          const paymentData = {
+            order_id: orderId.toString(),
+            amount_paid: this.paymentMethod === 'cash' ? this.amountReceived : this.total,
+            payment_method: this.paymentMethod as any
+          };
+
+          this.paymentService.processPayment(paymentData).subscribe({
+            next: (paymentResponse) => {
+              this.isSavingOrder = false;
+
+              if (paymentResponse.success && paymentResponse.data && response.data) {
+                // Store order info for receipt
+                this.lastOrder = {
+                  orderNumber: response.data.order_number,
+                  orderId: response.data.order_id,
+                  date: response.data.created_at,
+                  items: [...this.cart],
+                  subtotal: this.subtotal,
+                  tax: this.taxAmount,
+                  total: this.total,
+                  paymentMethod: this.paymentMethod,
+                  amountReceived: this.paymentMethod === 'cash' ? this.amountReceived : this.total,
+                  change: this.paymentMethod === 'cash' ? this.change : 0,
+                  customerName: this.customerName,
+                  customerPhone: this.customerPhone,
+                  tableNumber: this.tableNumber,
+                  note: this.orderNote
+                };
+
+                this.showPaymentModal = false;
+                this.showReceiptModal = true;
+              } else {
+                alert('Payment failed: ' + (paymentResponse.message || 'Unknown error'));
+              }
+            },
+            error: (error) => {
+              this.isSavingOrder = false;
+              console.error('Error processing payment:', error);
+              alert('Payment failed: ' + (error.error?.message || error.message || 'Network error'));
+            }
+          });
+        } else {
+          this.isSavingOrder = false;
+          alert('Failed to create order: ' + (response.message || 'Unknown error'));
+        }
+      },
+      error: (error) => {
+        this.isSavingOrder = false;
+        console.error('Error creating order:', error);
+        alert('Failed to create order: ' + (error.error?.message || error.message || 'Network error'));
+      }
+    });
   }
 
   closeReceipt(): void {

@@ -40,6 +40,19 @@ router.put('/me', authenticate, authController.updateProfile);
 router.post('/change-password', authenticate, authController.changePassword);
 
 /**
+ * @route   POST /api/v1/auth/users/create
+ * @desc    Create internal user (staff/manager)
+ * @access  Private (Manager only)
+ * NOTE: This route MUST come before /users/:id to avoid matching "create" as an ID
+ */
+router.post(
+  '/users/create',
+  authenticate,
+  authorize('manager', 'admin'),
+  authController.createInternalUser
+);
+
+/**
  * @route   GET /api/v1/auth/users
  * @desc    Get all users
  * @access  Private (Admin, Manager)

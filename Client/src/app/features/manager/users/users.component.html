@@ -1,34 +1,129 @@
 <div class="users-page">
-      <h1>👥 User Management</h1>
-      
-      <div class="table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Phone</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let user of users">
-              <td><strong>{{ user.firstName }} {{ user.lastName }}</strong></td>
-              <td>{{ user.email }}</td>
-              <td>
-                <span class="role-badge" [class]="'role-' + user.role">
-                  {{ user.role }}
-                </span>
-              </td>
-              <td>{{ user.phone || '-' }}</td>
-              <td>
-                <span class="status-badge" [class.active]="user.isActive">
-                  {{ user.isActive ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <div class="page-header">
+    <h1>👥 User Management</h1>
+    <button class="btn btn-primary" (click)="openAddModal()">
+      + Add User
+    </button>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-card">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td><strong>{{ user.full_name }}</strong></td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.phone || '-' }}</td>
+          <td>
+            <span class="role-badge" [class]="'role-' + user.role">
+              {{ user.role }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="user.is_active">
+              {{ user.is_active ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button
+                class="btn-icon"
+                (click)="toggleUserStatus(user)"
+                title="Toggle Status"
+              >
+                {{ user.is_active ? '🔴' : '🟢' }}
+              </button>
+              <button class="btn-icon danger" (click)="deleteUser(user)" title="Delete">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="users.length === 0" class="empty-state">
+      No users found
     </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Add New User</h2>
+        <button class="btn-close" (click)="closeModal()">×</button>
+      </div>
+
+      <form [formGroup]="userForm" (ngSubmit)="createUser()">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" formControlName="full_name" placeholder="John Doe" />
+          <small *ngIf="userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched" class="error">
+            Full name is required
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" formControlName="email" placeholder="user@example.com" />
+          <small *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="error">
+            Valid email is required
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" formControlName="password" placeholder="Min 6 characters" />
+          <small *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="error">
+            Password must be at least 6 characters
+          </small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" formControlName="phone" placeholder="+355 XX XXX XXXX" />
+          </div>
+
+          <div class="form-group">
+            <label>Role *</label>
+            <select formControlName="role">
+              <option value="staff">Staff</option>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="role-info">
+          <strong>Role Permissions:</strong>
+          <ul>
+            <li><strong>Staff:</strong> Can access POS and Orders</li>
+            <li><strong>Manager:</strong> Can manage products, users, and view reports</li>
+            <li><strong>Admin:</strong> Full system access</li>
+          </ul>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isLoading">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid || isLoading">
+            {{ isLoading ? 'Creating...' : 'Create User' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

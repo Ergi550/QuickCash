@@ -83,8 +83,17 @@
             <div class="total">
               Total: <strong>{{ order.total }} ALL</strong>
             </div>
-            <div class="payment-status" [class]="'payment-' + order.payment_status">
-              {{ order.payment_status }}
+            <div class="footer-actions">
+              <div class="payment-status" [class]="'payment-' + order.payment_status">
+                {{ order.payment_status }}
+              </div>
+              <button
+                *ngIf="order.payment_status === 'pending'"
+                class="btn-pay-order"
+                (click)="openPaymentModal(order, $event)"
+              >
+                💳 Pay
+              </button>
             </div>
           </div>
         </div>
@@ -96,3 +105,131 @@
         </div>
       </div>
     </div>
+
+<!-- Payment Modal -->
+<div *ngIf="showPaymentModal && selectedOrder" class="modal-overlay" (click)="closePaymentModal()">
+  <div class="modal payment-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>💳 Payment</h2>
+        <p class="order-number">Order #{{ selectedOrder.order_number }}</p>
+      </div>
+      <button class="btn-close" (click)="closePaymentModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="payment-total">
+        <span>Total Amount</span>
+        <strong>{{ selectedOrder.total | number:'1.0-0' }} ALL</strong>
+      </div>
+
+      <div class="payment-methods">
+        <button
+          class="method-btn"
+          [class.active]="paymentMethod === 'cash'"
+          (click)="paymentMethod = 'cash'"
+        >
+          💵 Cash
+        </button>
+        <button
+          class="method-btn"
+          [class.active]="paymentMethod === 'card'"
+          (click)="paymentMethod = 'card'; amountReceived = selectedOrder.total"
+        >
+          💳 Card
+        </button>
+        <button
+          class="method-btn"
+          [class.active]="paymentMethod === 'transfer'"
+          (click)="paymentMethod = 'transfer'; amountReceived = selectedOrder.total"
+        >
+          📱 Transfer
+        </button>
+      </div>
+
+      <!-- Cash Payment Section -->
+      @if (paymentMethod === 'cash') {
+        <div class="cash-section">
+          <div class="cash-input">
+            <label>
+              Amount Received (Total: {{ selectedOrder.total | number:'1.0-0' }} ALL)
+              @if (amountReceived > 0) {
+                <span> - Change: {{ change | number:'1.0-0' }} ALL</span>
+              }
+            </label>
+            <input
+              type="number"
+              [(ngModel)]="amountReceived"
+              class="amount-input"
+              placeholder="Enter amount or click quick buttons below"
+            />
+          </div>
+
+          <div class="quick-amounts">
+            <button type="button" (click)="amountReceived = selectedOrder.total">Exact</button>
+            <button type="button" (click)="amountReceived = Math.ceil(selectedOrder.total / 100) * 100">
+              {{ Math.ceil(selectedOrder.total / 100) * 100 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(selectedOrder.total / 500) * 500">
+              {{ Math.ceil(selectedOrder.total / 500) * 500 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(selectedOrder.total / 1000) * 1000">
+              {{ Math.ceil(selectedOrder.total / 1000) * 1000 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(selectedOrder.total / 2000) * 2000">
+              {{ Math.ceil(selectedOrder.total / 2000) * 2000 | number:'1.0-0' }}
+            </button>
+            <button type="button" (click)="amountReceived = Math.ceil(selectedOrder.total / 5000) * 5000">
+              {{ Math.ceil(selectedOrder.total / 5000) * 5000 | number:'1.0-0' }}
+            </button>
+          </div>
+
+          @if (amountReceived >= selectedOrder.total) {
+            <div class="change-display">
+              <div class="change-row">
+                <span>Amount Received</span>
+                <span>{{ amountReceived | number:'1.0-0' }} ALL</span>
+              </div>
+              <div class="change-row highlight">
+                <span>Change to Return</span>
+                <strong>{{ change | number:'1.0-0' }} ALL</strong>
+              </div>
+            </div>
+          }
+
+          @if (amountReceived > 0 && amountReceived < selectedOrder.total) {
+            <div class="insufficient-funds">
+              <span>⚠️ Insufficient amount. Need {{ selectedOrder.total - amountReceived | number:'1.0-0' }} ALL more.</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Card/Transfer Section -->
+      @if (paymentMethod === 'card' || paymentMethod === 'transfer') {
+        <div class="card-section">
+          <div class="payment-ready">
+            <div class="ready-icon">{{ paymentMethod === 'card' ? '💳' : '📱' }}</div>
+            <p>Ready to process {{ paymentMethod === 'card' ? 'card' : 'bank transfer' }} payment</p>
+            <strong>{{ selectedOrder.total | number:'1.0-0' }} ALL</strong>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closePaymentModal()" [disabled]="isProcessingPayment">Cancel</button>
+      <button
+        class="btn-confirm"
+        [disabled]="(paymentMethod === 'cash' && amountReceived < selectedOrder.total) || isProcessingPayment"
+        (click)="processPayment()"
+      >
+        @if (!isProcessingPayment) {
+          <span>✓ Complete Payment</span>
+        } @else {
+          <span>⏳ Processing...</span>
+        }
+      </button>
+    </div>
+  </div>
+</div>

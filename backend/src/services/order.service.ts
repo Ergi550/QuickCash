@@ -19,11 +19,17 @@ class OrderService {
    */
   async getAllOrders(status?: string): Promise<Order[]> {
     let queryText = `
-      SELECT o.*, 
-             c.first_name || ' ' || COALESCE(c.last_name, '') as customer_name,
-             u.full_name as staff_name
+      SELECT o.*,
+             u.full_name as staff_name,
+             COALESCE(
+               (SELECT payment_status
+                FROM payments
+                WHERE order_id = o.order_id
+                ORDER BY created_at DESC
+                LIMIT 1),
+               'pending'
+             ) as payment_status
       FROM orders o
-      LEFT JOIN customers c ON o.customer_id = c.customer_id
       LEFT JOIN users u ON o.staff_id = u.user_id
     `;
     const params: any[] = [];
@@ -45,11 +51,17 @@ class OrderService {
   async getOrderById(orderId: number): Promise<OrderWithItems> {
     // Get order
     const orderResult = await query(
-      `SELECT o.*, 
-              c.first_name || ' ' || COALESCE(c.last_name, '') as customer_name,
-              u.full_name as staff_name
+      `SELECT o.*,
+              u.full_name as staff_name,
+              COALESCE(
+                (SELECT payment_status
+                 FROM payments
+                 WHERE order_id = o.order_id
+                 ORDER BY created_at DESC
+                 LIMIT 1),
+                'pending'
+              ) as payment_status
        FROM orders o
-       LEFT JOIN customers c ON o.customer_id = c.customer_id
        LEFT JOIN users u ON o.staff_id = u.user_id
        WHERE o.order_id = $1`,
       [orderId]
@@ -74,18 +86,45 @@ class OrderService {
   }
 
   /**
-   * Get orders by customer ID
+   * Get orders by customer ID with items
    */
-  async getOrdersByCustomer(customerId: number): Promise<Order[]> {
-    const result = await query(
-      `SELECT o.*, u.full_name as staff_name
+  async getOrdersByCustomer(customerId: number): Promise<OrderWithItems[]> {
+    // Get orders with payment status
+    const ordersResult = await query(
+      `SELECT o.*,
+              u.full_name as staff_name,
+              COALESCE(
+                (SELECT payment_status
+                 FROM payments
+                 WHERE order_id = o.order_id
+                 ORDER BY created_at DESC
+                 LIMIT 1),
+                'pending'
+              ) as payment_status
        FROM orders o
        LEFT JOIN users u ON o.staff_id = u.user_id
-       WHERE o.customer_id = $1 
+       WHERE o.customer_id = $1
        ORDER BY o.created_at DESC`,
       [customerId]
     );
-    return result.rows;
+
+    const orders = ordersResult.rows;
+
+    // Get items for each order
+    const ordersWithItems: OrderWithItems[] = [];
+    for (const order of orders) {
+      const itemsResult = await query(
+        'SELECT * FROM order_items WHERE order_id = $1',
+        [order.order_id]
+      );
+
+      ordersWithItems.push({
+        ...order,
+        items: itemsResult.rows,
+      });
+    }
+
+    return ordersWithItems;
   }
 
   /**
@@ -300,11 +339,17 @@ const orderNumberResult = await client.query(
    */
   async getTodayOrders(): Promise<Order[]> {
     const result = await query(
-      `SELECT o.*, 
-              c.first_name || ' ' || COALESCE(c.last_name, '') as customer_name,
-              u.full_name as staff_name
+      `SELECT o.*,
+              u.full_name as staff_name,
+              COALESCE(
+                (SELECT payment_status
+                 FROM payments
+                 WHERE order_id = o.order_id
+                 ORDER BY created_at DESC
+                 LIMIT 1),
+                'pending'
+              ) as payment_status
        FROM orders o
-       LEFT JOIN customers c ON o.customer_id = c.customer_id
        LEFT JOIN users u ON o.staff_id = u.user_id
        WHERE DATE(o.created_at) = CURRENT_DATE
        ORDER BY o.created_at DESC`
@@ -317,11 +362,17 @@ const orderNumberResult = await client.query(
    */
   async getOrdersByDateRange(startDate: Date, endDate: Date): Promise<Order[]> {
     const result = await query(
-      `SELECT o.*, 
-              c.first_name || ' ' || COALESCE(c.last_name, '') as customer_name,
-              u.full_name as staff_name
+      `SELECT o.*,
+              u.full_name as staff_name,
+              COALESCE(
+                (SELECT payment_status
+                 FROM payments
+                 WHERE order_id = o.order_id
+                 ORDER BY created_at DESC
+                 LIMIT 1),
+                'pending'
+              ) as payment_status
        FROM orders o
-       LEFT JOIN customers c ON o.customer_id = c.customer_id
        LEFT JOIN users u ON o.staff_id = u.user_id
        WHERE o.created_at >= $1 AND o.created_at <= $2
        ORDER BY o.created_at DESC`,

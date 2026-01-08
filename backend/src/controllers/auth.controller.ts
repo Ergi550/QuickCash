@@ -159,6 +159,32 @@ class AuthController {
       next(error);
     }
   }
+
+  /**
+   * Create internal user (manager/staff) - managers only
+   * POST /api/v1/auth/users/create
+   */
+  async createInternalUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userData = req.body;
+
+      // Validate role is provided
+      if (!userData.role) {
+        throw new AppError('Roli është i detyrueshëm', 400);
+      }
+
+      // Call service to create internal user
+      const user = await authService.createInternalUser(userData);
+
+      res.status(201).json({
+        success: true,
+        message: 'Përdoruesi u krijua me sukses',
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new AuthController();

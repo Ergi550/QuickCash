@@ -85,6 +85,7 @@ export interface Order {
   items?: OrderItem[];
   customer_name?: string;
   staff_name?: string;
+  payment_status?: string; // From payments table
 }
 
 /**
@@ -92,6 +93,7 @@ export interface Order {
  */
 export interface CreateOrderDTO {
   customer_id?: number;
+  customer_name?: string; // For walk-in customers without account
   order_type?: string;
   table_number?: string;
   items: {
