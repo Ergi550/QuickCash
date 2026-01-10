@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { CartService } from '../../../core/services/cart.service';
 import { OrderService } from '../../../core/services/order.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -18,7 +20,7 @@ import { CartItem } from '../../../core/models/order.model';
   templateUrl: './checkout.component.html',
   styleUrls: [`./checkout.component.css`]
 })
-export class CheckoutComponent implements OnInit {
+export class CheckoutComponent implements OnInit, OnDestroy {
   checkoutForm: FormGroup;
   cartItems: CartItem[] = [];
   subtotal = 0;
@@ -26,6 +28,9 @@ export class CheckoutComponent implements OnInit {
   total = 0;
   isSubmitting = false;
   errorMessage = '';
+
+  // Subscription cleanup
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -35,24 +40,31 @@ export class CheckoutComponent implements OnInit {
     private router: Router
   ) {
     const currentUser = this.authService.currentUserValue;
-    
+
     this.checkoutForm = this.fb.group({
-      customerName: [currentUser ? ` ${currentUser.full_name}` : '', Validators.required],
+      customerName: [currentUser ? currentUser.full_name : '', Validators.required],
       tableNumber: [''],
       notes: ['']
     });
   }
 
   ngOnInit(): void {
-    this.cartService.cartItems$.subscribe(items => {
-      this.cartItems = items;
-      this.updateTotals();
+    this.cartService.cartItems$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(items => {
+        this.cartItems = items;
+        this.updateTotals();
 
-      // Redirect if cart is empty
-      if (items.length === 0) {
-        this.router.navigate(['/customer/cart']);
-      }
-    });
+        // Redirect if cart is empty
+        if (items.length === 0) {
+          this.router.navigate(['/customer/cart']);
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   updateTotals(): void {
@@ -62,17 +74,23 @@ export class CheckoutComponent implements OnInit {
   }
 
   placeOrder(): void {
+    // Early return if already processing - prevents double-click
+    if (this.isSubmitting) {
+      return;
+    }
+
     if (this.checkoutForm.invalid || this.cartItems.length === 0) {
       return;
     }
 
+    // Set flag IMMEDIATELY before any async operation
     this.isSubmitting = true;
     this.errorMessage = '';
 
     const orderData = {
       customer_id: this.authService.currentUserValue?.user_id,
-      full_name: this.checkoutForm.value.full_name,
-      table_number: this.checkoutForm.value.table_number || undefined,
+      full_name: this.checkoutForm.value.customerName,
+      table_number: this.checkoutForm.value.tableNumber || undefined,
       notes: this.checkoutForm.value.notes || undefined,
       items: this.cartItems.map(item => ({
         product_id: item.product.product_id,
@@ -81,22 +99,26 @@ export class CheckoutComponent implements OnInit {
       }))
     };
 
-    this.orderService.createOrder(orderData).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          // Clear cart
-          this.cartService.clearCart();
-          
-          // Show success and redirect
-          alert(`Order placed successfully! Order #${response.data.order_number}`);
-          this.router.navigate(['/customer/orders']);
+    this.orderService.createOrder(orderData)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isSubmitting = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            // Clear cart
+            this.cartService.clearCart();
+
+            // Show success and redirect
+            alert(`Order placed successfully! Order #${response.data.order_number}`);
+            this.router.navigate(['/customer/orders']);
+          }
+        },
+        error: (error) => {
+          this.errorMessage = error.error?.message || 'Failed to place order. Please try again.';
+          console.error('Error placing order:', error);
         }
-      },
-      error: (error) => {
-        this.isSubmitting = false;
-        this.errorMessage = error.error?.message || 'Failed to place order. Please try again.';
-        console.error('Error placing order:', error);
-      }
-    });
+      });
   }
 }

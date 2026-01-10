@@ -6,6 +6,30 @@ import { AuthRequest } from '../middleware/auth.middleware';
  * Order Controller
  */
 class OrderController {
+  // In-memory cache for idempotency (in production, use Redis)
+  private pendingRequests = new Map<string, Promise<any>>();
+  private completedRequests = new Map<string, { data: any; timestamp: number }>();
+
+  // Clean up old completed requests every 5 minutes
+  constructor() {
+    setInterval(() => {
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+      for (const [key, value] of this.completedRequests) {
+        if (now - value.timestamp > fiveMinutes) {
+          this.completedRequests.delete(key);
+        }
+      }
+    }, 60000);
+  }
+
+  /**
+   * Generate idempotency key from request data
+   */
+  private generateIdempotencyKey(staffId: number | undefined, items: any[], tableNumber?: string): string {
+    const itemsHash = JSON.stringify(items.sort((a, b) => a.product_id - b.product_id));
+    return `${staffId || 'guest'}-${itemsHash}-${tableNumber || 'none'}-${Math.floor(Date.now() / 10000)}`;
+  }
   /**
    * Get all orders
    * GET /api/v1/orders
@@ -65,19 +89,63 @@ class OrderController {
   /**
    * Create new order
    * POST /api/v1/orders
+   * Includes idempotency protection against double-clicks
    */
   async createOrder(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const orderData = req.body;
       const staffId = req.user?.userId;
 
-      const order = await orderService.createOrder(orderData, staffId);
+      // Generate idempotency key
+      const idempotencyKey = this.generateIdempotencyKey(staffId, orderData.items, orderData.table_number);
 
-      res.status(201).json({
-        success: true,
-        message: 'Porosia u krijua me sukses',
-        data: order,
-      });
+      // Check if request already completed (return cached response)
+      const cached = this.completedRequests.get(idempotencyKey);
+      if (cached) {
+        res.status(201).json({
+          success: true,
+          message: 'Porosia u krijua me sukses',
+          data: cached.data,
+        });
+        return;
+      }
+
+      // Check if request is already in progress (wait for it)
+      const pending = this.pendingRequests.get(idempotencyKey);
+      if (pending) {
+        try {
+          const order = await pending;
+          res.status(201).json({
+            success: true,
+            message: 'Porosia u krijua me sukses',
+            data: order,
+          });
+        } catch (error) {
+          next(error);
+        }
+        return;
+      }
+
+      // Create the order with idempotency protection
+      const orderPromise = orderService.createOrder(orderData, staffId);
+      this.pendingRequests.set(idempotencyKey, orderPromise);
+
+      try {
+        const order = await orderPromise;
+
+        // Cache the completed request
+        this.completedRequests.set(idempotencyKey, { data: order, timestamp: Date.now() });
+        this.pendingRequests.delete(idempotencyKey);
+
+        res.status(201).json({
+          success: true,
+          message: 'Porosia u krijua me sukses',
+          data: order,
+        });
+      } catch (error) {
+        this.pendingRequests.delete(idempotencyKey);
+        throw error;
+      }
     } catch (error) {
       next(error);
     }

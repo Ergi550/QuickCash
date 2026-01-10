@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { ProductService } from '../../../core/services/product.service';
 import { OrderService } from '../../../core/services/order.service';
 import { PaymentService } from '../../../core/services/payment.service';
@@ -19,7 +21,7 @@ interface CartItem {
   templateUrl: './pos.component.html',
   styleUrls: ['./pos.component.css']
 })
-export class PosComponent implements OnInit {
+export class PosComponent implements OnInit, OnDestroy {
   Math = Math;
   products: Product[] = [];
   filteredProducts: Product[] = [];
@@ -45,6 +47,9 @@ export class PosComponent implements OnInit {
   lastOrder: any = null;
   isSavingOrder = false;
 
+  // Subscription cleanup
+  private destroy$ = new Subject<void>();
+
 
   constructor(
     private productService: ProductService,
@@ -57,30 +62,41 @@ export class PosComponent implements OnInit {
     this.loadProducts();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadCategories(): void {
-    this.productService.getAllCategories().subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.categories = response.data;
+    this.productService.getAllCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.categories = response.data;
+          }
         }
-      }
-    });
+      });
   }
 
   loadProducts(): void {
     this.isLoading = true;
-    this.productService.getAllProducts({ available: true }).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.products = response.data;
-          this.filteredProducts = this.products;
+    this.productService.getAllProducts({ available: true })
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.products = response.data;
+            this.filteredProducts = this.products;
+          }
+        },
+        error: () => {
+          // Error already handled by finalize
         }
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isLoading = false;
-      }
-    });
+      });
   }
 
   filterByCategory(categoryId: number | null): void {
@@ -198,14 +214,18 @@ export class PosComponent implements OnInit {
   }
 
   placeOrder(): void {
+    // Early return if already processing - prevents double-click
+    if (this.isSavingOrder) {
+      return;
+    }
+
     if (this.cart.length === 0) {
       alert('Cart is empty!');
       return;
     }
 
-    if (this.isSavingOrder) {
-      return;
-    }
+    // Set flag IMMEDIATELY before any async operation
+    this.isSavingOrder = true;
 
     // Prepare order data for backend (status will be PENDING)
     const orderRequest: any = {
@@ -224,49 +244,53 @@ export class PosComponent implements OnInit {
       orderRequest.notes = `Customer: ${this.customerName}`;
     }
 
-    this.isSavingOrder = true;
-
     // Save order to backend with PENDING status
-    this.orderService.createOrder(orderRequest).subscribe({
-      next: (response) => {
-        this.isSavingOrder = false;
+    this.orderService.createOrder(orderRequest)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isSavingOrder = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            alert(`Order #${response.data.order_number} placed successfully! You can pay it later from Orders section.`);
 
-        if (response.success && response.data) {
-          alert(`Order #${response.data.order_number} placed successfully! You can pay it later from Orders section.`);
-
-          // Clear cart and form
-          this.cart = [];
-          this.customerName = '';
-          this.customerPhone = '';
-          this.tableNumber = '';
-          this.orderNote = '';
-          this.amountReceived = 0;
-        } else {
-          alert('Failed to place order: ' + (response.message || 'Unknown error'));
+            // Clear cart and form
+            this.cart = [];
+            this.customerName = '';
+            this.customerPhone = '';
+            this.tableNumber = '';
+            this.orderNote = '';
+            this.amountReceived = 0;
+          } else {
+            alert('Failed to place order: ' + (response.message || 'Unknown error'));
+          }
+        },
+        error: (error) => {
+          console.error('Error placing order:', error);
+          alert('Failed to place order: ' + (error.error?.message || error.message || 'Network error'));
         }
-      },
-      error: (error) => {
-        this.isSavingOrder = false;
-        console.error('Error placing order:', error);
-        alert('Failed to place order: ' + (error.error?.message || error.message || 'Network error'));
-      }
-    });
+      });
   }
 
   processPayment(): void {
+    // Early return if already processing - prevents double-click
+    if (this.isSavingOrder) {
+      return;
+    }
+
     if (this.paymentMethod === 'cash' && this.amountReceived < this.total) {
       alert('Insufficient amount received!');
       return;
     }
 
-    if (this.isSavingOrder) {
-      return;
-    }
+    // Set flag IMMEDIATELY before any async operation
+    this.isSavingOrder = true;
 
     // Prepare order data for backend
     const orderRequest: any = {
       items: this.cart.map(item => ({
-        product_id: parseInt(item.product.product_id as any), // Convert string to number
+        product_id: parseInt(item.product.product_id as any),
         quantity: item.quantity
       })),
       table_number: this.tableNumber || undefined,
@@ -280,67 +304,69 @@ export class PosComponent implements OnInit {
       orderRequest.notes = `Customer: ${this.customerName}`;
     }
 
-    this.isSavingOrder = true;
-
     // Save order to backend
-    this.orderService.createOrder(orderRequest).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          const orderId = response.data.order_id;
+    this.orderService.createOrder(orderRequest)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            const orderId = response.data.order_id;
 
-          // Now process the payment
-          const paymentData = {
-            order_id: orderId.toString(),
-            amount_paid: this.paymentMethod === 'cash' ? this.amountReceived : this.total,
-            payment_method: this.paymentMethod as any
-          };
+            // Now process the payment
+            const paymentData = {
+              order_id: orderId.toString(),
+              amount_paid: this.paymentMethod === 'cash' ? this.amountReceived : this.total,
+              payment_method: this.paymentMethod as any
+            };
 
-          this.paymentService.processPayment(paymentData).subscribe({
-            next: (paymentResponse) => {
-              this.isSavingOrder = false;
+            this.paymentService.processPayment(paymentData)
+              .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => this.isSavingOrder = false)
+              )
+              .subscribe({
+                next: (paymentResponse) => {
+                  if (paymentResponse.success && paymentResponse.data && response.data) {
+                    // Store order info for receipt
+                    this.lastOrder = {
+                      orderNumber: response.data.order_number,
+                      orderId: response.data.order_id,
+                      date: response.data.created_at,
+                      items: [...this.cart],
+                      subtotal: this.subtotal,
+                      tax: this.taxAmount,
+                      total: this.total,
+                      paymentMethod: this.paymentMethod,
+                      amountReceived: this.paymentMethod === 'cash' ? this.amountReceived : this.total,
+                      change: this.paymentMethod === 'cash' ? this.change : 0,
+                      customerName: this.customerName,
+                      customerPhone: this.customerPhone,
+                      tableNumber: this.tableNumber,
+                      note: this.orderNote
+                    };
 
-              if (paymentResponse.success && paymentResponse.data && response.data) {
-                // Store order info for receipt
-                this.lastOrder = {
-                  orderNumber: response.data.order_number,
-                  orderId: response.data.order_id,
-                  date: response.data.created_at,
-                  items: [...this.cart],
-                  subtotal: this.subtotal,
-                  tax: this.taxAmount,
-                  total: this.total,
-                  paymentMethod: this.paymentMethod,
-                  amountReceived: this.paymentMethod === 'cash' ? this.amountReceived : this.total,
-                  change: this.paymentMethod === 'cash' ? this.change : 0,
-                  customerName: this.customerName,
-                  customerPhone: this.customerPhone,
-                  tableNumber: this.tableNumber,
-                  note: this.orderNote
-                };
-
-                this.showPaymentModal = false;
-                this.showReceiptModal = true;
-              } else {
-                alert('Payment failed: ' + (paymentResponse.message || 'Unknown error'));
-              }
-            },
-            error: (error) => {
-              this.isSavingOrder = false;
-              console.error('Error processing payment:', error);
-              alert('Payment failed: ' + (error.error?.message || error.message || 'Network error'));
-            }
-          });
-        } else {
+                    this.showPaymentModal = false;
+                    this.showReceiptModal = true;
+                  } else {
+                    alert('Payment failed: ' + (paymentResponse.message || 'Unknown error'));
+                  }
+                },
+                error: (error) => {
+                  console.error('Error processing payment:', error);
+                  alert('Payment failed: ' + (error.error?.message || error.message || 'Network error'));
+                }
+              });
+          } else {
+            this.isSavingOrder = false;
+            alert('Failed to create order: ' + (response.message || 'Unknown error'));
+          }
+        },
+        error: (error) => {
           this.isSavingOrder = false;
-          alert('Failed to create order: ' + (response.message || 'Unknown error'));
+          console.error('Error creating order:', error);
+          alert('Failed to create order: ' + (error.error?.message || error.message || 'Network error'));
         }
-      },
-      error: (error) => {
-        this.isSavingOrder = false;
-        console.error('Error creating order:', error);
-        alert('Failed to create order: ' + (error.error?.message || error.message || 'Network error'));
-      }
-    });
+      });
   }
 
   closeReceipt(): void {

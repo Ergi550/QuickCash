@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
 import { Product, Category } from '../../../core/models/product.model';
@@ -15,7 +17,7 @@ import { Product, Category } from '../../../core/models/product.model';
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.css']
 })
-export class MenuComponent implements OnInit {
+export class MenuComponent implements OnInit, OnDestroy {
 
   products: Product[] = [];
   filteredProducts: Product[] = [];
@@ -23,6 +25,9 @@ export class MenuComponent implements OnInit {
   selectedCategoryId: number | null = null;
   isLoading = false;
   errorMessage = '';
+
+  // Subscription cleanup
+  private destroy$ = new Subject<void>();
 
   constructor(
     private productService: ProductService,
@@ -34,37 +39,47 @@ export class MenuComponent implements OnInit {
     this.loadProducts();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadCategories(): void {
-    this.productService.getAllCategories(true).subscribe({
-      next: (response)=>{
-        if(response.success && response.data){
-          this.categories = response.data;
+    this.productService.getAllCategories(true)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.categories = response.data;
+          }
+        },
+        error: (error) => {
+          console.error('Error loading categories:', error);
         }
-      },
-      error:(error)=>{
-        console.error('Error loading categories:', error);
-      }
-    });
+      });
   }
 
   loadProducts(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.productService.getAllProducts({ available: true }).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.products = response.data;
-          this.filteredProducts = this.products;
+    this.productService.getAllProducts({ available: true })
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.products = response.data;
+            this.filteredProducts = this.products;
+          }
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to load menu. Please try again.';
+          console.error('Error loading products:', error);
         }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to load menu. Please try again.';
-        this.isLoading = false;
-        console.error('Error loading products:', error);
-      }
-    });
+      });
   }
 
   filterByCategory(categoryId: number | null): void {

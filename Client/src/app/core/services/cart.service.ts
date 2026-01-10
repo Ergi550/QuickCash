@@ -21,21 +21,23 @@ export class CartService {
 
   /**
    * Add product to cart
+   * Uses immutable operations to prevent race conditions
    */
   addToCart(product: Product, quantity: number = 1, notes?: string): void {
-    const currentCart = this.cartItemsSubject.value;
-    
+    const currentCart = [...this.cartItemsSubject.value];
+
     // Check if product already in cart
     const existingItemIndex = currentCart.findIndex(
       item => item.product.id === product.product_id
     );
 
     if (existingItemIndex > -1) {
-      // Update quantity
-      currentCart[existingItemIndex].quantity += quantity;
-      if (notes) {
-        currentCart[existingItemIndex].notes = notes;
-      }
+      // Update quantity with immutable operation
+      currentCart[existingItemIndex] = {
+        ...currentCart[existingItemIndex],
+        quantity: currentCart[existingItemIndex].quantity + quantity,
+        notes: notes || currentCart[existingItemIndex].notes
+      };
     } else {
       // Add new item
       const cartItem: CartItem = {

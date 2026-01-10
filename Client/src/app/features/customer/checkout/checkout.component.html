@@ -13,24 +13,24 @@
                 
                 <div class="form-group">
                   <label for="customerName">Full Name *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     id="customerName"
-                    formControlName="full_name"
+                    formControlName="customerName"
                     placeholder="Enter your name"
                   />
-                  <span class="error-message" 
-                    *ngIf="checkoutForm.get('full_name')?.invalid && checkoutForm.get('full_name')?.touched">
+                  <span class="error-message"
+                    *ngIf="checkoutForm.get('customerName')?.invalid && checkoutForm.get('customerName')?.touched">
                     Name is required
                   </span>
                 </div>
 
                 <div class="form-group">
-                  <label for="table_number">Table Number (optional)</label>
-                  <input 
-                    type="number" 
-                    id="table_number"
-                    formControlName="table_number"
+                  <label for="tableNumber">Table Number (optional)</label>
+                  <input
+                    type="number"
+                    id="tableNumber"
+                    formControlName="tableNumber"
                     placeholder="Enter table number"
                   />
                 </div>

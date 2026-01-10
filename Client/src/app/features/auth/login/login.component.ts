@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 
 /**
@@ -15,10 +17,13 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+
+  // Subscription cleanup
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -31,33 +36,48 @@ export class LoginComponent {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   onSubmit(): void {
+    // Early return if already processing - prevents double-click
+    if (this.isLoading) {
+      return;
+    }
+
     if (this.loginForm.invalid) {
       return;
     }
 
+    // Set flag IMMEDIATELY before any async operation
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: (response) => {
-        if (response.success && response.data?.user) {
-          // Redirect based on role
-          const role = response.data.user.role;
-          
-          if (role === 'manager') {
-            this.router.navigate(['/manager']);
-          } else if (role === 'staff') {
-            this.router.navigate(['/staff']);
-          } else {
-            this.router.navigate(['/customer']);
+    this.authService.login(this.loginForm.value)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data?.user) {
+            // Redirect based on role
+            const role = response.data.user.role;
+
+            if (role === 'manager') {
+              this.router.navigate(['/manager']);
+            } else if (role === 'staff') {
+              this.router.navigate(['/staff']);
+            } else {
+              this.router.navigate(['/customer']);
+            }
           }
+        },
+        error: (error) => {
+          this.errorMessage = error.error?.message || 'Login failed. Please try again.';
         }
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Login failed. Please try again.';
-      }
-    });
+      });
   }
 }
