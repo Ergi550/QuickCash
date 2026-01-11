@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ProductService } from '../../../core/services/product.service';
 import { Product, Category, ProductFormData } from '../../../core/models/product.model';
+import { environment } from '../../../../environments/environment.development';
 
 @Component({
   selector: 'app-products',
@@ -19,6 +20,10 @@ export class ProductsComponent implements OnInit {
   editingProduct: Product | null = null;
   selectedImageFile: File | null = null;
   imagePreview: string | null = null;
+  isUploading = false;
+
+  // Base URL for images (without /api/v1)
+  private readonly imageBaseUrl = environment.apiUrl.replace('/api/v1', '');
 
   constructor(
     private fb: FormBuilder,
@@ -31,8 +36,7 @@ export class ProductsComponent implements OnInit {
       selling_price: [0, [Validators.required, Validators.min(0)]],
       cost_price: [0, [Validators.required, Validators.min(0)]],
       initial_quantity: [0, [Validators.required, Validators.min(0)]],
-      is_available: [true],
-      image_url: ['']
+      is_available: [true]
     });
   }
 
@@ -79,6 +83,9 @@ export class ProductsComponent implements OnInit {
 
   editProduct(product: Product): void {
     this.editingProduct = product;
+    this.selectedImageFile = null;
+    // Show existing image as preview if available
+    this.imagePreview = product.image_url ? this.getImageUrl(product.image_url) : null;
     this.productForm.patchValue({
       product_name: product.product_name,
       description: product.description,
@@ -109,29 +116,76 @@ export class ProductsComponent implements OnInit {
       selling_price: Number(formValue.selling_price),
       cost_price: Number(formValue.cost_price),
       current_quantity: Number(formValue.initial_quantity),
-      is_available: formValue.is_available,
-      image_url: formValue.image_url || undefined
+      is_available: formValue.is_available
     };
+
+    this.isUploading = true;
 
     if (this.editingProduct) {
       this.productService.updateProduct(this.editingProduct.product_id, productData).subscribe({
         next: () => {
-          alert('Product updated!');
-          this.loadProducts();
-          this.closeModal();
+          // Upload image if selected
+          if (this.selectedImageFile) {
+            this.uploadImageForProduct(this.editingProduct!.product_id);
+          } else {
+            this.isUploading = false;
+            alert('Product updated!');
+            this.loadProducts();
+            this.closeModal();
+          }
         },
-        error: () => alert('Failed to update product')
+        error: () => {
+          this.isUploading = false;
+          alert('Failed to update product');
+        }
       });
     } else {
       this.productService.createProduct(productData).subscribe({
-        next: () => {
-          alert('Product created!');
-          this.loadProducts();
-          this.closeModal();
+        next: (response) => {
+          // Upload image if selected
+          if (this.selectedImageFile && response.data) {
+            this.uploadImageForProduct(response.data.product_id);
+          } else {
+            this.isUploading = false;
+            alert('Product created!');
+            this.loadProducts();
+            this.closeModal();
+          }
         },
-        error: () => alert('Failed to create product')
+        error: () => {
+          this.isUploading = false;
+          alert('Failed to create product');
+        }
       });
     }
+  }
+
+  private uploadImageForProduct(productId: string): void {
+    if (!this.selectedImageFile) return;
+
+    this.productService.uploadProductImage(productId, this.selectedImageFile).subscribe({
+      next: () => {
+        this.isUploading = false;
+        alert(this.editingProduct ? 'Product updated with image!' : 'Product created with image!');
+        this.loadProducts();
+        this.closeModal();
+      },
+      error: (err) => {
+        this.isUploading = false;
+        console.error('Image upload failed:', err);
+        alert('Product saved, but image upload failed. You can try uploading the image again.');
+        this.loadProducts();
+        this.closeModal();
+      }
+    });
+  }
+
+  getImageUrl(imageUrl: string | undefined): string {
+    if (!imageUrl) return '';
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith('http')) return imageUrl;
+    // Otherwise, prepend the base URL
+    return `${this.imageBaseUrl}${imageUrl}`;
   }
 
   toggleAvailability(product: Product): void {
@@ -165,16 +219,11 @@ export class ProductsComponent implements OnInit {
         this.imagePreview = e.target.result;
       };
       reader.readAsDataURL(file);
-
-      // For now, store the image URL as a placeholder
-      // In production, you would upload to a server/cloud storage
-      this.productForm.patchValue({ image_url: file.name });
     }
   }
 
   removeImage(): void {
     this.selectedImageFile = null;
     this.imagePreview = null;
-    this.productForm.patchValue({ image_url: '' });
   }
 }

@@ -149,29 +149,26 @@ class AuthService {
     const password_hash = await hashPassword(password);
     const customerCode = `CUST-${Date.now()}`;
 
-    // Split full_name into first_name and last_name
-    const nameParts = full_name.trim().split(' ');
-    const first_name = nameParts[0];
-    const last_name = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+    // // Split full_name into first_name and last_name
+    // const nameParts = full_name.trim().split(' ');
+    // const first_name = nameParts[0];
+    // const last_name = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
     // Create new customer
     const result = await query(
       `INSERT INTO customers (
         customer_code, email, password_hash, full_name,
-        first_name, last_name, phone, role, is_active
+        phone, is_active
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
         customerCode,
         email,
         password_hash,
         full_name,
-        first_name,
-        last_name || null,
         phone || null,
-        'customer',
-        true
+        true,
       ]
     );
 

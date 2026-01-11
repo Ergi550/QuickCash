@@ -12,6 +12,17 @@ class OrderController {
 
   // Clean up old completed requests every 5 minutes
   constructor() {
+    // Bind all methods to preserve 'this' context when passed to Express routes
+    this.getAllOrders = this.getAllOrders.bind(this);
+    this.getOrderById = this.getOrderById.bind(this);
+    this.getCustomerOrders = this.getCustomerOrders.bind(this);
+    this.createOrder = this.createOrder.bind(this);
+    this.updateOrderStatus = this.updateOrderStatus.bind(this);
+    this.cancelOrder = this.cancelOrder.bind(this);
+    this.getTodayOrders = this.getTodayOrders.bind(this);
+    this.getOrdersByRange = this.getOrdersByRange.bind(this);
+    this.getOrderStats = this.getOrderStats.bind(this);
+
     setInterval(() => {
       const now = Date.now();
       const fiveMinutes = 5 * 60 * 1000;

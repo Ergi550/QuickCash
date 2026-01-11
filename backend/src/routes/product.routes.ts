@@ -106,4 +106,16 @@ router.patch(
   productController.updateInventory
 );
 
+/**
+ * @route   POST /api/v1/products/:id/image
+ * @desc    Upload product image
+ * @access  Private (Manager+)
+ */
+router.post(
+  '/:id/image',
+  authenticate,
+  authorize('admin', 'manager'),
+  productController.uploadImage
+);
+
 export default router;

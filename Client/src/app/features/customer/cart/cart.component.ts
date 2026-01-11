@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { CartItem } from '../../../core/models/order.model';
+import { environment } from '../../../../environments/environment.development';
 
 /**
  * Cart Component
@@ -21,6 +22,9 @@ export class CartComponent implements OnInit {
   subtotal = 0;
   tax = 0;
   total = 0;
+
+  // Base URL for images (without /api/v1)
+  private readonly imageBaseUrl = environment.apiUrl.replace('/api/v1', '');
 
   constructor(
     private cartService: CartService,
@@ -68,5 +72,13 @@ export class CartComponent implements OnInit {
 
   proceedToCheckout(): void {
     this.router.navigate(['/customer/checkout']);
+  }
+
+  getImageUrl(imageUrl: string | undefined): string {
+    if (!imageUrl) return 'assets/placeholder.png';
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith('http')) return imageUrl;
+    // Otherwise, prepend the base URL
+    return `${this.imageBaseUrl}${imageUrl}`;
   }
 }

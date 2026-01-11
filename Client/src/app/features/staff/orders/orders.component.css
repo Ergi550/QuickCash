@@ -1,535 +1,180 @@
+/* =========================
+   ORDERS PAGE (SCOPED)
+========================= */
+
 .orders-page {
-      padding: 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-
-    .page-header h1 {
-      margin: 0;
-      color: #2c3e50;
-    }
-
-    .btn-primary {
-      background: #3498db;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .status-tabs {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      padding: 12px 24px;
-      border: 2px solid #ddd;
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s;
-    }
-
-    .tab-btn:hover {
-      border-color: #3498db;
-    }
-
-    .tab-btn.active {
-      background: #3498db;
-      color: white;
-      border-color: #3498db;
-    }
-
-    .tab-btn.pending.active { background: #f39c12; border-color: #f39c12; }
-    .tab-btn.preparing.active { background: #e67e22; border-color: #e67e22; }
-    .tab-btn.ready.active { background: #27ae60; border-color: #27ae60; }
-
-    .loading {
-      text-align: center;
-      padding: 3rem;
-    }
-
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #3498db;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 1rem;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .orders-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .order-card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: all 0.3s;
-      border-left: 4px solid #ddd;
-    }
-
-    .order-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-    }
-
-    .order-card.status-pending { border-left-color: #f39c12; }
-    .order-card.status-confirmed { border-left-color: #3498db; }
-    .order-card.status-preparing { border-left-color: #e67e22; }
-    .order-card.status-ready { border-left-color: #27ae60; }
-    .order-card.status-completed { border-left-color: #95a5a6; }
-
-    .card-header {
-      padding: 1.25rem;
-      border-bottom: 1px solid #ecf0f1;
-    }
-
-    .order-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .order-info h3 {
-      margin: 0;
-      font-size: 1.125rem;
-      color: #2c3e50;
-    }
-
-    .badge {
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .badge-pending { background: #f39c12; color: white; }
-    .badge-confirmed { background: #3498db; color: white; }
-    .badge-preparing { background: #e67e22; color: white; }
-    .badge-ready { background: #27ae60; color: white; }
-    .badge-completed { background: #95a5a6; color: white; }
-    .badge-cancelled { background: #e74c3c; color: white; }
-
-    .order-time {
-      font-size: 0.875rem;
-      color: #7f8c8d;
-    }
-
-    .card-body {
-      padding: 1.25rem;
-    }
-
-    .customer-info, .table-info {
-      font-size: 0.875rem;
-      margin-bottom: 0.5rem;
-      color: #555;
-    }
-
-    .items-list {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: #f8f9fa;
-      border-radius: 5px;
-    }
-
-    .item {
-      padding: 0.25rem 0;
-      font-size: 0.875rem;
-      color: #555;
-    }
-
-    .card-footer {
-      padding: 1rem 1.25rem;
-      background: #f8f9fa;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;
-    }
-
-    .total {
-      font-size: 1.125rem;
-      color: #2c3e50;
-    }
-
-    .total strong {
-      color: #3498db;
-    }
-
-    .footer-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .payment-status {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-
-    .payment-status.payment-pending {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .payment-status.payment-paid {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .btn-pay-order {
-      padding: 8px 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.875rem;
-      transition: all 0.3s;
-    }
-
-    .btn-pay-order:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .empty-state {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 3rem;
-      color: #7f8c8d;
-    }
-
-    @media (max-width: 768px) {
-      .orders-page {
-        padding: 1rem;
-      }
-
-      .orders-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Payment Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      backdrop-filter: blur(2px);
-    }
-
-    .modal {
-      background: white;
-      border-radius: 16px;
-      max-width: 90%;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      animation: modalSlide 0.3s ease;
-    }
-
-    @keyframes modalSlide {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .payment-modal {
-      width: 420px;
-      max-height: 90vh;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .modal-header h2 {
-      margin: 0 0 5px 0;
-    }
-
-    .order-number {
-      margin: 0;
-      font-size: 0.875rem;
-      color: #666;
-    }
-
-    .btn-close {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      color: #999;
-      transition: color 0.2s;
-    }
-
-    .btn-close:hover {
-      color: #333;
-    }
-
-    .modal-body {
-      padding: 20px;
-      overflow-y: auto;
-      flex: 1;
-      max-height: calc(90vh - 140px);
-    }
-
-    .payment-total {
-      text-align: center;
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-
-    .payment-total span {
-      display: block;
-      color: #666;
-      margin-bottom: 5px;
-    }
-
-    .payment-total strong {
-      font-size: 32px;
-      color: #333;
-    }
-
-    .payment-methods {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .method-btn {
-      flex: 1;
-      padding: 15px;
-      border: 2px solid #e0e0e0;
-      background: white;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-
-    .method-btn:hover {
-      border-color: #667eea;
-    }
-
-    .method-btn.active {
-      border-color: #667eea;
-      background: #f0f3ff;
-    }
-
-    .cash-section {
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .cash-input {
-      margin-bottom: 15px;
-    }
-
-    .cash-input label {
-      display: block;
-      margin-bottom: 8px;
-      color: #666;
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    .amount-input {
-      width: 100%;
-      padding: 15px;
-      font-size: 24px;
-      text-align: center;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      transition: border-color 0.2s;
-    }
-
-    .amount-input:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-
-    .quick-amounts {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 15px;
-    }
-
-    .quick-amounts button {
-      padding: 10px;
-      border: 1px solid #ddd;
-      background: #f5f5f5;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .quick-amounts button:hover {
-      background: #667eea;
-      color: white;
-      border-color: #667eea;
-    }
-
-    .change-display {
-      background: #e8f5e9;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 15px;
-    }
-
-    .change-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 5px 0;
-    }
-
-    .change-row.highlight {
-      border-top: 1px dashed #4caf50;
-      margin-top: 10px;
-      padding-top: 10px;
-    }
-
-    .change-row.highlight strong {
-      color: #2e7d32;
-      font-size: 24px;
-    }
-
-    .insufficient-funds {
-      background: #fff3e0;
-      color: #e65100;
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 14px;
-      margin-top: 15px;
-    }
-
-    .card-section {
-      animation: fadeIn 0.3s ease;
-    }
-
-    .payment-ready {
-      text-align: center;
-      padding: 30px 20px;
-      background: #f5f7fa;
-      border-radius: 10px;
-    }
-
-    .ready-icon {
-      font-size: 3rem;
-      margin-bottom: 10px;
-    }
-
-    .payment-ready p {
-      color: #666;
-      margin: 0 0 10px 0;
-    }
-
-    .payment-ready strong {
-      font-size: 28px;
-      color: #333;
-    }
-
-    .modal-footer {
-      display: flex;
-      gap: 10px;
-      padding: 20px;
-      border-top: 1px solid #eee;
-      background: white;
-      flex-shrink: 0;
-    }
-
-    .btn-cancel {
-      flex: 1;
-      padding: 15px;
-      border: 1px solid #ddd;
-      background: white;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-cancel:hover:not(:disabled) {
-      background: #f5f5f5;
-    }
-
-    .btn-cancel:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-confirm {
-      flex: 2;
-      padding: 15px;
-      border: none;
-      background: #4caf50;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-
-    .btn-confirm:hover:not(:disabled) {
-      background: #43a047;
-    }
-
-    .btn-confirm:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.orders-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.orders-page .page-header h1 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+/* Primary Button vetëm për Orders */
+.orders-page .btn-primary {
+  background: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Status Tabs */
+.orders-page .status-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.orders-page .tab-btn {
+  padding: 12px 24px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.orders-page .tab-btn:hover {
+  border-color: #3498db;
+}
+
+.orders-page .tab-btn.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.orders-page .tab-btn.pending.active { background: #f39c12; border-color: #f39c12; }
+.orders-page .tab-btn.preparing.active { background: #e67e22; border-color: #e67e22; }
+.orders-page .tab-btn.ready.active { background: #27ae60; border-color: #27ae60; }
+
+/* Loading */
+.orders-page .loading {
+  text-align: center;
+  padding: 3rem;
+}
+
+.orders-page .spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+/* Orders Grid */
+.orders-page .orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Order Card */
+.orders-page .order-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: all 0.3s;
+  border-left: 4px solid #ddd;
+}
+
+.orders-page .order-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.orders-page .order-card.status-pending { border-left-color: #f39c12; }
+.orders-page .order-card.status-confirmed { border-left-color: #3498db; }
+.orders-page .order-card.status-preparing { border-left-color: #e67e22; }
+.orders-page .order-card.status-ready { border-left-color: #27ae60; }
+.orders-page .order-card.status-completed { border-left-color: #95a5a6; }
+
+/* Card Content */
+.orders-page .card-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.orders-page .order-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.orders-page .order-info h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #2c3e50;
+}
+
+/* Badge */
+.orders-page .badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.orders-page .badge-pending { background: #f39c12; color: white; }
+.orders-page .badge-confirmed { background: #3498db; color: white; }
+.orders-page .badge-preparing { background: #e67e22; color: white; }
+.orders-page .badge-ready { background: #27ae60; color: white; }
+.orders-page .badge-completed { background: #95a5a6; color: white; }
+
+/* Footer */
+.orders-page .card-footer {
+  padding: 1rem 1.25rem;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Pay Button */
+.orders-page .btn-pay-order {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s;
+}
+
+.orders-page .btn-pay-order:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orders-page {
+    padding: 1rem;
+  }
+
+  .orders-page .orders-grid {
+    grid-template-columns: 1fr;
+  }
+}

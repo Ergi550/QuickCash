@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
 import config from './config/config';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import { testConnection } from './database/Connection';
@@ -46,6 +47,9 @@ class App {
     } else {
       this.app.use(morgan('combined'));
     }
+
+    // Serve static files (uploaded images)
+    this.app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
     // Health check endpoint
     this.app.get('/health', async (req, res) => {

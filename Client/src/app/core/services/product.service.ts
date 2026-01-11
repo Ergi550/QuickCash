@@ -103,4 +103,16 @@ export class ProductService {
   getOutOfStockProducts(): Observable<ApiResponse<Product[]>> {
     return this.http.get<ApiResponse<Product[]>>(`${this.API_URL}/inventory/out-of-stock`);
   }
+
+  /**
+   * Upload product image (Manager only)
+   */
+  uploadProductImage(productId: string, file: File): Observable<ApiResponse<{ image_url: string; product: Product }>> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<ApiResponse<{ image_url: string; product: Product }>>(
+      `${this.API_URL}/${productId}/image`,
+      formData
+    );
+  }
 }

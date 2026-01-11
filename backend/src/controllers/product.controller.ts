@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import productService from '../services/product.service';
+import { uploadProductImage } from '../middleware/upload.middleware';
+import path from 'path';
+import fs from 'fs';
 
 /**
  * Product Controller
@@ -280,6 +283,63 @@ class ProductController {
     } catch (error) {
       next(error);
     }
+  }
+
+  /**
+   * Upload product image
+   * POST /api/v1/products/:id/image
+   */
+  async uploadImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+    uploadProductImage(req, res, async (err: any) => {
+      if (err) {
+        return next(err);
+      }
+
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: 'No image file provided',
+        });
+        return;
+      }
+
+      try {
+        const { id } = req.params;
+        const productId = parseInt(id);
+
+        // Get current product to check for existing image
+        const currentProduct = await productService.getProductById(productId);
+
+        // Delete old image if exists
+        if (currentProduct.image_url) {
+          const oldImagePath = path.join(__dirname, '../../uploads/products', path.basename(currentProduct.image_url));
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+
+        // Build the image URL
+        const imageUrl = `/uploads/products/${req.file.filename}`;
+
+        // Update product with new image URL
+        const product = await productService.updateProduct(productId, { image_url: imageUrl });
+
+        res.status(200).json({
+          success: true,
+          message: 'Image uploaded successfully',
+          data: {
+            image_url: imageUrl,
+            product,
+          },
+        });
+      } catch (error) {
+        // Delete uploaded file if update fails
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+        next(error);
+      }
+    });
   }
 }
 

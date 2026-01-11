@@ -5,6 +5,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
 import { Product, Category } from '../../../core/models/product.model';
+import { environment } from '../../../../environments/environment.development';
 
 /**
  * Menu Component
@@ -25,6 +26,9 @@ export class MenuComponent implements OnInit, OnDestroy {
   selectedCategoryId: number | null = null;
   isLoading = false;
   errorMessage = '';
+
+  // Base URL for images (without /api/v1)
+  private readonly imageBaseUrl = environment.apiUrl.replace('/api/v1', '');
 
   // Subscription cleanup
   private destroy$ = new Subject<void>();
@@ -116,6 +120,12 @@ export class MenuComponent implements OnInit, OnDestroy {
   onImageError(event: any): void {
     event.target.src = 'assets/placeholder.png';
   }
-  
 
+  getImageUrl(imageUrl: string | undefined): string {
+    if (!imageUrl) return '';
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith('http')) return imageUrl;
+    // Otherwise, prepend the base URL
+    return `${this.imageBaseUrl}${imageUrl}`;
+  }
 }
