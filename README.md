@@ -1,130 +1,78 @@
-# 🚀 QuickCash POS System
+# QuickCash
 
-QuickCash është një sistem modern POS (Point of Sale) i projektuar për menaxhimin e bizneseve lokale.
+## Project Description
+QuickCash is a financial management application that aims to simplify budgeting, tracking expenses, and managing personal finances. The intuitive interface allows users to have a clear overview of their financial status and encourages better spending habits.
 
-## 📋 Features
+## Features
+- **Expense Tracking**: Log expenses with categories and notes.
+- **Budget Planning**: Set monthly budgets and receive alerts for overspending.
+- **Reports**: Generate visual reports of spending patterns and trends.
+- **Multi-Currency Support**: Manage expenses in various currencies.
+- **User Authentication**: Secure user accounts with login and registration functionality.
 
-- ✅ Self-service payment (Cash & Card)
-- ✅ Real-time inventory management
-- ✅ Financial reporting (Daily/Monthly/Yearly)
-- ✅ Customer membership & loyalty program
-- ✅ Staff management
-- ✅ Social media integration
-- ✅ AI-powered customer flow prediction
+## Tech Stack
+- **Frontend**: React.js for building dynamic user interfaces.
+- **Backend**: Node.js with Express for server-side logic.
+- **Database**: MongoDB for storing user and transaction data.
+- **Authentication**: JSON Web Tokens (JWT) for secure user sessions.
 
-## 🛠️ Tech Stack
-
-### Backend
-- Node.js + Express.js
-- PostgreSQL (Sequelize ORM)
-- JWT Authentication
-- Stripe for payments
-
-### Frontend
-- Angular 17+
-- TypeScript
-- Angular Material
-- RxJS
-
-### DevOps
-- Git & GitHub
-- Docker 
-
-## 📂 Project Structure
-
+## Project Structure
 ```
-quickcash/
-├── server/                          
-│   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/ (4)
-│   │   ├── services/ (4)
-│   │   ├── models/ (4)
-│   │   ├── routes/ (4)
-│   │   ├── middleware/ (2)
-│   │   ├── utils/ (2)
-│   │   ├── data/ (3 JSON files)
-│   │   └── app.ts
-│   └── [docs]
-│
-├── client/                          
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── core/
-│   │   │   │   ├── guards/ (2)      ✅
-│   │   │   │   ├── interceptors/ (1) ✅
-│   │   │   │   ├── models/ (4)      ✅
-│   │   │   │   └── services/ (5)    ✅
-│   │   │   │
-│   │   │   ├── features/
-│   │   │   │   ├── auth/ (2)        ✅
-│   │   │   │   ├── customer/ (5)    ✅
-│   │   │   │   ├── staff/ (4)       ✅
-│   │   │   │   └── manager/ (6)     ✅ NEW!
-│   │   │   │
-│   │   │   └── shared/
-│   │   │       └── components/ (2)  ✅ NEW!
-│   │   │
-│   │   └── [config files]
-│   └── [docs]
-│
-└── [documentation] (9 files)        ✅
+QuickCash
+├── client/                # Frontend code
+│   ├── src/              # React components
+│   ├── public/           # Static files
+├── server/                # Backend code
+│   ├── models/           # Database models
+│   ├── routes/           # API routes
+│   ├── middleware/       # Authentication middleware
+└── README.md             # Project documentation
 ```
 
-## 🚀 Getting Started
+## Setup Instructions
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Ergi550/QuickCash.git
+   cd QuickCash
+   ```
+2. Install dependencies:
+   - For the client:
+     ```bash
+     cd client
+     npm install
+     ```
+   - For the server:
+     ```bash
+     cd server
+     npm install
+     ```
+3. Start the application:
+   - For the server:
+     ```bash
+     cd server
+     npm start
+     ```
+   - For the client:
+     ```bash
+     cd client
+     npm start
+     ```
 
-### Prerequisites
-- Node.js 18+ 
-- PostgreSQL 15+
-- Angular CLI 17+
+## Contribution Guidelines
+We welcome contributions! Please follow these steps to contribute:
+1. Fork the repository.
+2. Create a new branch for your feature or bugfix:
+   ```bash
+   git checkout -b feature/MyFeature
+   ```
+3. Make your changes and commit them:
+   ```bash
+   git commit -m 'Add some feature'
+   ```
+4. Push to the branch:
+   ```bash
+   git push origin feature/MyFeature
+   ```
+5. Open a pull request detailing your changes and why they should be merged.
 
-### Installation
-
-1. **Clone repository:**
-```bash
-git clone https://github.com/Ergi550/QuickCash.git
-cd QuickCash
-```
-
-2. **Setup Backend:**
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edit .env me konfigurimet e tua
-npm run seed  # Populate database Pasi te vendoset ne projekt
-npm run dev   # Start server
-```
-
-3. **Setup Frontend:**
-```bash
-cd frontend/staff-app
-npm install
-ng serve
-# Access at http://localhost:4200
-
-
-
-## 🔐 Default Login Credentials
-
-- **Admin:** admin@quickcash.al / password123
-- **Manager:** manager@quickcash.al / password123
-- **Staff:** staff1@quickcash.al / password123
-
-
-
-## 📖 Documentation
-
-- [API Documentation](docs/api/)
-- [User Manual](docs/user-manual/)
-- [Technical Documentation](docs/technical/)
-
-## 👥 Team
-
-- Ergi Duka
-- Aurel Ukperaj
-- Klaus Ferhati
-- Isli Korkuti
-
-
-**QuickCash POS** - Moderne, Efikase, Inovative 🚀
+Happy coding!
